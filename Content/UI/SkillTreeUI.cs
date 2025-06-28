@@ -39,7 +39,7 @@ public class TraitButtonUISystem : ModSystem
 
     public override void UpdateUI(GameTime gameTime) => Interface?.Update(gameTime);
 
-    public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
+    /*public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
     {
         int index = layers.FindIndex(layer => layer.Name.Equals("Vanilla: Fancy UI"));
         if (index == -1)
@@ -52,7 +52,7 @@ public class TraitButtonUISystem : ModSystem
             return true;
 
         }, InterfaceScaleType.UI));
-    }
+    }*/
 }
 
 public class TraitButtonUIElement : UIElement
