@@ -1,0 +1,15 @@
+Configs: {
+	ClientConfig: {
+		DisplayName: Client Config
+
+		ButtonUIDraggable: {
+			Label: Button U I Draggable
+			Tooltip: ""
+		}
+
+		ButtonUIPosition: {
+			Label: Button U I Position
+			Tooltip: ""
+		}
+	}
+}

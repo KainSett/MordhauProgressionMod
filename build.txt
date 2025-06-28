@@ -1,0 +1,3 @@
+displayName = Mordhau Progression
+author = KainSett
+version = 0.1
