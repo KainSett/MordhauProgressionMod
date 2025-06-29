@@ -6,6 +6,8 @@ using Terraria.UI.Gamepad;
 using Terraria.UI;
 using Terraria;
 using Terraria.ModLoader;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace MordhauProgression.Content.UI;
 
@@ -72,9 +74,31 @@ public class HideResourceBarsSystem : ModSystem
         On_Main.GUIBarsDrawInner -= StopBarsInFancyUI;
     }
 
+    public static void DrawSpecificLayers(string[] names)
+    {
+        Main.spriteBatch?.End();
+        for (int i = 0; i < UILayers.Count; i++)
+        {
+            var l = UILayers[i];
+
+            if (names.Contains(l.Name))
+                l.Draw();
+
+            UILayers.RemoveAt(i);
+        }
+        Main.spriteBatch.Begin();
+    }
+
+    public static List<GameInterfaceLayer> UILayers = new List<GameInterfaceLayer>();
+
     private void StopBarsInFancyUI(On_Main.orig_GUIBarsDrawInner orig, Main self)
     {
         if (Main.InGameUI.CurrentState is not BaseFancyUI)
             orig(self);
+
+        else
+        {
+            DrawSpecificLayers([TraitButtonUISystem.LayerName]);
+        }
     }
 }
