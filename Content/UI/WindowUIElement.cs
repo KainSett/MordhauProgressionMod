@@ -21,6 +21,6 @@ public class WindowUIElement : UIElement
         
         var color = Color.White * 150f;
 
-        spriteBatch.Draw(texture, GetInnerDimensions().Position(), null, color with { A = 240 }, 0, origin, screenSize / texture.Size(), SpriteEffects.None, 0);
+        spriteBatch.Draw(texture, GetInnerDimensions().Position(), null, color with { A = 100 }, 0, origin, screenSize / texture.Size(), SpriteEffects.None, 0);
     }
 }

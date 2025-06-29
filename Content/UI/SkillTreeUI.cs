@@ -10,6 +10,7 @@ using MordhauProgression.Common.Assets;
 using Terraria.GameInput;
 using Terraria.UI.Gamepad;
 using System.Collections.Generic;
+using Terraria.GameContent;
 
 namespace MordhauProgression.Content.UI;
 [Autoload(Side = ModSide.Client)]
@@ -41,11 +42,11 @@ public class TraitButtonUISystem : ModSystem
 
     public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
     {
-        int index = layers.FindIndex(layer => layer.Name.Equals("Vanilla: Fancy UI"));
+        int index = layers.FindIndex(layer => layer.Name.Equals("Vanilla: Ingame Options"));
         if (index == -1)
             return;
 
-        layers.Insert(index+1, new LegacyGameInterfaceLayer("MordhauProgression: Trait Button", delegate
+        layers.Insert(index - 2, new LegacyGameInterfaceLayer("MordhauProgression: Trait Button", delegate
         {
             Interface.Draw(Main.spriteBatch, new GameTime());
 
@@ -64,68 +65,120 @@ public class TraitButtonUIElement : UIElement
         Vector2 origin = texture.Size() * 0;
 
         var rect = texture.Frame(4, 3, type, Tier, -2, -2);
-        var scale = Height.Pixels / 32;
+        var scale = Scale * Height.Pixels / 32;
 
         spriteBatch.End();
-        spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, SamplerState.PointClamp, DepthStencilState.Default, Main.Rasterizer);
+        spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, Main.Rasterizer);
 
         var pos = new Vector2(Left.Pixels, Top.Pixels);
 
-        Vector2 zero = Main.drawToScreen ? Vector2.Zero : new Vector2(Main.offScreenRange);
-        var offset = -rect.TopLeft() * scale + new Vector2(2 * type, 2 * 0) * scale;
-        spriteBatch.Draw(texture, pos, rect, Color.White, 0, origin, scale, SpriteEffects.None, 0);
+        var scaleOffset = rect.Size() * (Scale - 1) / 2;
+        //Vector2 zero = Main.drawToScreen ? Vector2.Zero : new Vector2(Main.offScreenRange);
+        //var offset = -rect.TopLeft() * scale + new Vector2(2 * type, 2 * 0) * scale;
+        spriteBatch.Draw(texture, pos - scaleOffset, rect, Color.White, 0, origin, scale, SpriteEffects.None, 0);
+
+        if (Flash != 0)
+        {
+            texture = TextureAssets.MagicPixel.Value;
+
+            var PixelScale = Scale * new Vector2(Width.Pixels, Height.Pixels) / new Vector2(texture.Width, texture.Height);
+
+            var color = Flash > 0 ? Color.White : Color.DarkGray;
+            color *= float.Abs(Flash);
+
+            spriteBatch.Draw(texture, pos - scaleOffset, null, color with { A = 150 }, 0, origin, PixelScale, SpriteEffects.None, 0);
+        }
     }
     public int Tier = 0;
 
     public int type = 0;
 
+    public float Scale = 1f;
+
+    public float Flash = 0;
+
+    public Rectangle Area = Rectangle.Empty;
+
     public override void LeftClick(UIMouseEvent evt)
     {
         if (evt.Target == this)
-            OnLeftInteract(evt);
+            OnLeftInteract();
     }
 
     public override void RightClick(UIMouseEvent evt)
     {
         if (evt.Target == this)
-            OnRightInteract(evt);
+            OnRightInteract();
     }
-    private void OnRightInteract(UIMouseEvent evt)
+
+    private void OnRightInteract()
     {
+        if (Tier != 0)
+            Flash = -1f;
+
         Tier = 0;
     }
 
-    private void OnLeftInteract(UIMouseEvent evt)
+    private void OnLeftInteract()
     {
-        Tier = (int)Clamp(Tier + 1, 0, 2);
+        var newTier = (int)Clamp(Tier + 1, 0, 2);
+
+        if (newTier != Tier)
+            Flash = 1f;
+
+        Tier = newTier;
     }
 
-    public override void Update(GameTime gameTime)
+    public void SetToOriginalArea()
     {
-
-        if (ContainsPoint(Main.MouseScreen))
-            Main.LocalPlayer.mouseInterface = true;
+        Top.Set(Area.Top, 0);
+        Left.Set(Area.Left, 0);
+        MinWidth.Set(Area.Width, 0);
+        MaxWidth.Set(Area.Width, 0);
+        Width.Set(Area.Width, 0);
+        MinHeight.Set(Area.Height, 0);
+        MaxHeight.Set(Area.Height, 0);
+        Height.Set(Area.Height, 0);
     }
 
     public override void Recalculate()
     {
         base.Recalculate();
-        Top.Set(Top.Pixels / Main.UIScale, 0);
-        Left.Set(Left.Pixels / Main.UIScale, 0);
-        Height.Set(Clamp(Height.Pixels / Main.UIScale, MinHeight.Pixels, MaxHeight.Pixels), 0);
-        Width.Set(Clamp(Width.Pixels / Main.UIScale, MinWidth.Pixels, MaxWidth.Pixels), 0);
+
+        var dim = GetDimensions();
+        if (GetInnerDimensions().ToRectangle() != Area)
+        {
+            SetToOriginalArea();
+        }
+    }
+
+    public override void Update(GameTime gameTime)
+    {
+
+
+        if (Flash > 0)
+            Flash = Clamp(Flash - 0.05f, 0, Flash);
+
+        else if (Flash < 0)
+            Flash = Clamp(Flash + 0.05f, Flash, 0);
+
+
+        if (ContainsPoint(Main.MouseScreen))
+        {
+            Main.LocalPlayer.mouseInterface = true;
+            Scale = Clamp(Scale + 0.015f, 1, 1.2f);
+        }
+
+        else Scale = Clamp(Scale - 0.015f, 1, 1.2f);
     }
 }
 
 public class TraitButtonUIState : UIState
 {
-    /*public override void Update(GameTime gameTime)
-    {
-        base.Update(gameTime);
-    }*/
-
     public override void OnInitialize()
     {
+        var screenHalved = new Vector2(Main.instance.GraphicsDevice.Viewport.Width / 2, Main.instance.GraphicsDevice.Viewport.Height / 5);
+
         for (int x = 0; x < 8; x++)
         {
             for (int y = 0; y < 8; y++)
@@ -133,9 +186,10 @@ public class TraitButtonUIState : UIState
                 TraitButtonUIElement button = new();
                 button.SetPadding(0);
 
-                var pos = new Vector2(x * 100 - 40 * (x % 2) - 400, y * 80);
-                pos += new Vector2(Main.screenWidth / 2, Main.screenHeight / 4);
+                var pos = new Vector2(x * 100 - 40 * (x % 2) - 360, y * 80 + 100 * (y / 4 - 1));
+                pos += screenHalved;
 
+                button.Area = new Rectangle((int)pos.X, (int)pos.Y, 48, 48);
 
                 button.Left.Set(pos.X, 0f);
                 button.Top.Set(pos.Y, 0f);
@@ -146,13 +200,12 @@ public class TraitButtonUIState : UIState
                 button.MaxWidth.Set(48, 0);
                 button.MaxHeight.Set(48, 0);
                 button.MinHeight.Set(48, 0);
-                //button.HAlign = 0.5f;
+
                 button.type = x % 4;
                 button.Tier = 0;
 
                 Append(button);
 
-                ModContent.GetInstance<TraitButtonUISystem>()?.Show();
 
                 button.Activate();
             }

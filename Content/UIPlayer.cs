@@ -14,13 +14,14 @@ public class UIPlayer : ModPlayer
 
     public override void ResetEffects()
     {
-        if (ModContent.GetInstance<WindowUISystem>()?.IsActive() != true)
+        if (Main.LocalPlayer.velocity.Y < 0)
         {
-            //ModContent.GetInstance<WindowUISystem>()?.OpenUI();
+            ModContent.GetInstance<TraitButtonUISystem>()?.Hide();
+            ModContent.GetInstance<WindowUISystem>()?.OpenUI();
             ModContent.GetInstance<TraitButtonUISystem>()?.Show();
-            
-            if (Main.LocalPlayer.velocity.Y < 0)
-                ModContent.GetInstance<TraitButtonUISystem>()?.Hide();
         }
+
+        if (ModContent.GetInstance<WindowUISystem>()?.IsActive() != true)
+            ModContent.GetInstance<TraitButtonUISystem>()?.Hide();
     }
 }
