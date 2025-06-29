@@ -10,7 +10,6 @@ namespace MordhauProgression.Content.UI;
 public class WindowUISystem : ModSystem
 {
     internal WindowUIState state;
-    private UserInterface Interface;
 
     public void OpenUI()
     {
@@ -31,7 +30,6 @@ public class WindowUISystem : ModSystem
     public override void Load()
     {
         state = new WindowUIState();
-        Interface = new UserInterface();
         state.Activate();
     }
 
@@ -45,23 +43,7 @@ public class WindowUISystem : ModSystem
 
     public override void UpdateUI(GameTime gameTime)
     {
-        Interface?.Update(gameTime);
         if (state.InUI)
             Main.LocalPlayer.mouseInterface = true;
-    }
-
-    public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
-    {
-        int index = layers.FindIndex(layer => layer.Name.Equals("Vanilla: Fancy UI"));
-        if (index == -1)
-            return;
-
-        layers.Insert(index, new LegacyGameInterfaceLayer("MordhauProgression: Window", delegate
-        {
-            Interface.Draw(Main.spriteBatch, new GameTime());
-
-            return true;
-
-        }, InterfaceScaleType.UI));
     }
 }

@@ -12,10 +12,6 @@ namespace MordhauProgression.Content.UI;
 // stole (with permission) from https://github.com/ZenTheMod/WizenkleBoss/blob/dev/Content/UI/BaseFancyUI.cs
 public abstract class BaseFancyUI : UIState
 {
-    /// <summary>
-    /// The panel in question:
-    /// </summary>
-    public UIElement BackPanel;
 
     public virtual bool ExitCondition => false;
 
@@ -40,27 +36,7 @@ public abstract class BaseFancyUI : UIState
         element.HAlign = 0.5f;
         Append(element);
 
-        for (int i = 0; i < 4;  i++)
-        {
-            TraitButtonUIElement button = new();
-            button.SetPadding(0);
-            button.Left.Set(Main.screenWidth / 2 + 64 * (i - 1.5f), 0f);
-            button.Top.Set(300, 0f);
-            button.Width.Set(64, 0);
-            button.Height.Set(64, 0);
-            button.MinWidth.Set(64, 0);
-            button.MaxWidth.Set(64, 0);
-            button.MaxHeight.Set(64, 0);
-            button.MinHeight.Set(64, 0);
-            //button.HAlign = 0.5f;
-            button.type = i;
-
-            ModContent.GetInstance<TraitButtonUISystem>()?.Show();
-            element.Append(button);
-
-
-            button.Activate();
-        }
+        
     }
 
     public override void OnActivate()
