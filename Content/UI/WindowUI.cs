@@ -83,11 +83,12 @@ public class WindowUIElement : UIElement
 
         var color = Color.White * 150f;
 
+        spriteBatch.End();
+        spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, Main.Rasterizer);
+
         spriteBatch.Draw(texture, GetInnerDimensions().Position(), null, color with { A = 240 }, 0, origin, screenSize / texture.Size(), SpriteEffects.None, 0);
 
 
-        spriteBatch.End();
-        spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, Main.Rasterizer);
 
 
 

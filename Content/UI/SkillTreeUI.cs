@@ -53,26 +53,43 @@ public class TraitButtonUISystem : ModSystem
         Interface = new UserInterface();
         state.Activate();
 
-        //On_UserInterface.GetMousePosition += On_UserInterface_GetMousePosition;
+        On_UserInterface.GetMousePosition += On_UserInterface_GetMousePosition;
+        On_PlayerInput.SetZoom_UI += On_PlayerInput_SetZoom_UI;
     }
 
-    /*private void On_UserInterface_GetMousePosition(On_UserInterface.orig_GetMousePosition orig, UserInterface self)
+    private void On_PlayerInput_SetZoom_UI(On_PlayerInput.orig_SetZoom_UI orig)
     {
         var cond = Main.inFancyUI && WindowUISystem.IsActive();
         if (cond)
         {
-            Main.mouseX = (int)(Main.mouseX * Main.UIScale);
-            Main.mouseY = (int)(Main.mouseY * Main.UIScale);
+            var oldScale = Main.UIScale;
+            Main.UIScale = 1f;
+
+            orig();
+
+            Main.UIScale = oldScale;
+        }
+        else orig();
+    }
+
+    private void On_UserInterface_GetMousePosition(On_UserInterface.orig_GetMousePosition orig, UserInterface self)
+    {
+        var cond = Main.inFancyUI && WindowUISystem.IsActive();
+        if (cond)
+        {
+            //Main.mouseX = (int)(Main.mouseX * Main.UIScale);
+            //Main.mouseY = (int)(Main.mouseY * Main.UIScale);
+
         }
 
         orig(self);
 
         if (cond)
         {
-            Main.mouseX = (int)(Main.mouseX / Main.UIScale);
-            Main.mouseY = (int)(Main.mouseY / Main.UIScale);
+            //Main.mouseX = (int)(Main.mouseX / Main.UIScale);
+            //Main.mouseY = (int)(Main.mouseY / Main.UIScale);
         }
-    }*/
+    }
 
     public bool IsActive()
     {
@@ -110,6 +127,7 @@ public class TraitButtonUIElement : UIElement
 {
     public override void Draw(SpriteBatch spriteBatch)
     {
+
         Texture2D texture = Textures.Icons.Value;
 
         Vector2 origin = texture.Size() * 0;
@@ -134,7 +152,6 @@ public class TraitButtonUIElement : UIElement
         var color = Flash > 0 ? Color.White * 100 : Color.White;
 
         spriteBatch.Draw(texture, pos - new Vector2(6) - frameOffset, null, color, 0, Vector2.Zero, scale, SpriteEffects.None, 0);
-
 
         if (Flash != 0 || !Open)
         {
@@ -244,6 +261,8 @@ public class TraitButtonUIElement : UIElement
         }
 
         else Scale = Clamp(Scale - 0.015f, 1, 1.2f);
+
+
     }
 
     public void SetTraitData(string role, int row, int index)

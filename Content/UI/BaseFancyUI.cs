@@ -12,9 +12,9 @@ using System.Linq;
 namespace MordhauProgression.Content.UI;
 
 // stole (with permission) from https://github.com/ZenTheMod/WizenkleBoss/blob/dev/Content/UI/BaseFancyUI.cs
+// rewrote to fit my usecase
 public abstract class BaseFancyUI : UIState
 {
-
     public virtual bool ExitCondition => false;
 
     public bool InUI => Main.InGameUI.CurrentState == this;
@@ -37,8 +37,6 @@ public abstract class BaseFancyUI : UIState
         element.MinHeight.Set(0f, 1f);
         element.HAlign = 0.5f;
         Append(element);
-
-        
     }
 
     public override void OnActivate()
@@ -61,9 +59,9 @@ public abstract class BaseFancyUI : UIState
 }
 
 // stole (with permission) from https://github.com/ZenTheMod/WizenkleBoss/blob/dev/Common/ILDetourSystems/HideResourceBarsSystem.cs
+// modified to fit my usecase
 public class HideResourceBarsSystem : ModSystem
 {
-    // ModifyInterfaceLayers does not actually work for this purpose ?
     public override void Load()
     {
         On_Main.GUIBarsDrawInner += StopBarsInFancyUI;
