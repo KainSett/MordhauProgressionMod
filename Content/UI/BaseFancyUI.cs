@@ -89,7 +89,9 @@ public class HideResourceBarsSystem : ModSystem
         Main.spriteBatch.Begin();
     }
 
-    public static List<GameInterfaceLayer> UILayers = new List<GameInterfaceLayer>();
+    public static List<GameInterfaceLayer> UILayers = [];
+
+    public static List<string> NameList = [];
 
     private void StopBarsInFancyUI(On_Main.orig_GUIBarsDrawInner orig, Main self)
     {
@@ -98,7 +100,7 @@ public class HideResourceBarsSystem : ModSystem
 
         else
         {
-            DrawSpecificLayers([TraitButtonUISystem.LayerName]);
+            DrawSpecificLayers([..NameList]);
         }
     }
 }

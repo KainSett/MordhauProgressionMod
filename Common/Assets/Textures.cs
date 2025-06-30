@@ -16,6 +16,10 @@ public static class Textures
 
     public static readonly Asset<Texture2D> Icons = LoadTexture2D("UI/Icons");
 
+    public static readonly Asset<Texture2D> IconFrame = LoadTexture2D("UI/IconFrame");
+
+    public static readonly Asset<Texture2D> Point = LoadTexture2D("UI/Point");
+
     private static Asset<Texture2D> LoadTexture2D(string TexturePath)
     {
         if (Main.dedServ)

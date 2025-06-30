@@ -24,7 +24,7 @@ public class UIPlayer : ModPlayer
             ModContent.GetInstance<TraitButtonUISystem>()?.Show();
         }
 
-        if (ModContent.GetInstance<WindowUISystem>()?.IsActive() != true)
+        if (WindowUISystem.IsActive() != true)
         {
             SkillTree.Clear();
             ModContent.GetInstance<TraitButtonUISystem>()?.Hide();

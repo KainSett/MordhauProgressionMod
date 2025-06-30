@@ -47,16 +47,18 @@ public class TraitButtonUISystem : ModSystem
 
     public override void Load()
     {
+        HideResourceBarsSystem.NameList.Add(LayerName);
+
         state = new TraitButtonUIState();
         Interface = new UserInterface();
         state.Activate();
 
-        On_UserInterface.GetMousePosition += On_UserInterface_GetMousePosition;
+        //On_UserInterface.GetMousePosition += On_UserInterface_GetMousePosition;
     }
 
-    private void On_UserInterface_GetMousePosition(On_UserInterface.orig_GetMousePosition orig, UserInterface self)
+    /*private void On_UserInterface_GetMousePosition(On_UserInterface.orig_GetMousePosition orig, UserInterface self)
     {
-        var cond = self.CurrentState is TraitButtonUIState;
+        var cond = Main.inFancyUI && WindowUISystem.IsActive();
         if (cond)
         {
             Main.mouseX = (int)(Main.mouseX * Main.UIScale);
@@ -70,7 +72,7 @@ public class TraitButtonUISystem : ModSystem
             Main.mouseX = (int)(Main.mouseX / Main.UIScale);
             Main.mouseY = (int)(Main.mouseY / Main.UIScale);
         }
-    }
+    }*/
 
     public bool IsActive()
     {
@@ -124,16 +126,29 @@ public class TraitButtonUIElement : UIElement
 
         spriteBatch.Draw(texture, pos - scaleOffset, rect, Color.White, 0, origin, scale, SpriteEffects.None, 0);
 
+
+        texture = Textures.IconFrame.Value;
+        scale = Scale * (Height.Pixels + 12) / texture.Height;
+
+        var frameOffset = (rect.Size() + new Vector2(12)) * (Scale - 1) / 2;
+        var color = Flash > 0 ? Color.White * 100 : Color.White;
+
+        spriteBatch.Draw(texture, pos - new Vector2(6) - frameOffset, null, color, 0, Vector2.Zero, scale, SpriteEffects.None, 0);
+
+
         if (Flash != 0 || !Open)
         {
+            if (Flash > 0)
+                spriteBatch.Draw(texture, pos - new Vector2(6) - frameOffset, null, color with { A = 0 }, 0, Vector2.Zero, scale, SpriteEffects.None, 0);
+
             texture = TextureAssets.MagicPixel.Value;
 
-            var PixelScale = Scale * new Vector2(Width.Pixels, Height.Pixels) / new Vector2(texture.Width, texture.Height);
+            var PixelScale = Scale * new Vector2(Width.Pixels + 12, Height.Pixels + 12) / new Vector2(texture.Width, texture.Height);
 
-            var color = Flash > 0 ? Color.White : Color.DarkGray;
+            color = Flash > 0 ? Color.White : Color.DarkGray;
             color *= float.Abs(Flash);
 
-            spriteBatch.Draw(texture, pos - scaleOffset, null, color with { A = 150 }, 0, origin, PixelScale, SpriteEffects.None, 0);
+            spriteBatch.Draw(texture, pos - new Vector2(6) - frameOffset, null, color with { A = 150 }, 0, origin, PixelScale, SpriteEffects.None, 0);
         }
 
         if (Scale != 1)
@@ -145,12 +160,14 @@ public class TraitButtonUIElement : UIElement
                 : new Vector2(Width.Pixels - scaleOffset.X / 2, -scaleOffset.Y);
             var textOffset = new Vector2(10);
 
-            origin = data.row == 1 ? Vector2.Zero : new Vector2(180f + Width.Pixels + scaleOffset.X, 0);
+            var textSize = ChatManager.GetStringSize(font, $"{data.role}, {data.index}", new Vector2(1f), 180);
 
-            var color = Color.DarkSlateGray;
+            origin = data.row == 1 ? Vector2.Zero : new Vector2(textSize.X + Width.Pixels + scaleOffset.X, 0);
+
+            color = Color.DarkSlateGray;
             color *= (Scale - 0.7f);
 
-            var WindowScale = (new Vector2(20, 20) + ChatManager.GetStringSize(font, $"{data.role}, {data.index}", new Vector2(1f), 180)) / texture.Size();
+            var WindowScale = (new Vector2(20, 20) + textSize) / texture.Size();
 
             spriteBatch.Draw(texture, pos + offset - origin, null, color, 0, Vector2.Zero, WindowScale, SpriteEffects.None, 0);
 
@@ -220,7 +237,7 @@ public class TraitButtonUIElement : UIElement
             Flash = Clamp(Flash + 0.05f, Flash, 0);
 
 
-        if (ContainsPoint(Main.MouseScreen * Main.UIScale))
+        if (ContainsPoint(Main.MouseScreen))
         {
             Main.LocalPlayer.mouseInterface = true;
             Scale = Clamp(Scale + 0.015f, 1, 1.2f);
