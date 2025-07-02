@@ -10,13 +10,9 @@ public static class Textures
 {
     private const string prefix = "MordhauProgression/Common/Assets/";
 
-    public static readonly Asset<Texture2D> Button = LoadTexture2D("UI/Button");
-
     public static readonly Asset<Texture2D> Window = LoadTexture2D("UI/Window");
 
     public static readonly Asset<Texture2D> Icons = LoadTexture2D("UI/Icons");
-
-    public static readonly Asset<Texture2D> IconFrame = LoadTexture2D("UI/IconFrame");
 
     public static readonly Asset<Texture2D> Point = LoadTexture2D("UI/Point");
 

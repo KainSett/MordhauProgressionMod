@@ -99,10 +99,10 @@ public class WindowUIElement : UIElement
                 : i == 2 ? Terraria.ID.ItemID.SorcererEmblem
                 : Terraria.ID.ItemID.SummonerEmblem;
 
-            string name = i == 0 ? "Mewee"
-                : i == 1 ? "Rangr"
-                : i == 2 ? "Mag"
-                : "Summonr";
+            string name = i == 0 ? "Melee"
+                : i == 1 ? "Ranger"
+                : i == 2 ? "Mage"
+                : "Summoner";
 
 
             var offset = i > 1 ? 128 : -128;
@@ -145,9 +145,8 @@ public class WindowUIElement : UIElement
             if (pos == Vector2.Zero)
                 return;
 
-            texture = TextureAssets.Chains[8].Value;
+            texture = TextureAssets.Chain40.Value;
 
-            var scale = new Vector2(20, 50) / texture.Size();
 
 
             for (int s = 0; s < 2; s++)
@@ -161,6 +160,8 @@ public class WindowUIElement : UIElement
                     var Center = chain[n] - ((chain[n] - prev) / 1.5f);
                     color = Color.White;
                     color *= 1f / (2.01f - 0.5f * power[n]);
+
+                    var scale = new Vector2(22, (Center - prev).Length()) / texture.Size();
 
 
                     spriteBatch.Draw(texture, Center, null, color with { A = 255 }, prev.DirectionTo(Center).ToRotation() + PiOver2, texture.Size() / 2, scale, SpriteEffects.None, 0);

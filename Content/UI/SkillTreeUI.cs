@@ -1,4 +1,4 @@
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using MordhauProgression.Common.Config;
 using MordhauProgression.Content.UI;
 using Terraria.GameContent.UI.Elements;
@@ -16,6 +16,8 @@ using System;
 using System.Data;
 using System.Reflection;
 using Terraria.UI.Chat;
+using Terraria.Localization;
+using Terraria.Chat;
 
 namespace MordhauProgression.Content.UI;
 [Autoload(Side = ModSide.Client)]
@@ -53,7 +55,6 @@ public class TraitButtonUISystem : ModSystem
         Interface = new UserInterface();
         state.Activate();
 
-        On_UserInterface.GetMousePosition += On_UserInterface_GetMousePosition;
         On_PlayerInput.SetZoom_UI += On_PlayerInput_SetZoom_UI;
     }
 
@@ -70,25 +71,6 @@ public class TraitButtonUISystem : ModSystem
             Main.UIScale = oldScale;
         }
         else orig();
-    }
-
-    private void On_UserInterface_GetMousePosition(On_UserInterface.orig_GetMousePosition orig, UserInterface self)
-    {
-        var cond = Main.inFancyUI && WindowUISystem.IsActive();
-        if (cond)
-        {
-            //Main.mouseX = (int)(Main.mouseX * Main.UIScale);
-            //Main.mouseY = (int)(Main.mouseY * Main.UIScale);
-
-        }
-
-        orig(self);
-
-        if (cond)
-        {
-            //Main.mouseX = (int)(Main.mouseX / Main.UIScale);
-            //Main.mouseY = (int)(Main.mouseY / Main.UIScale);
-        }
     }
 
     public bool IsActive()
@@ -130,68 +112,121 @@ public class TraitButtonUIElement : UIElement
 
         Texture2D texture = Textures.Icons.Value;
 
-        Vector2 origin = texture.Size() * 0;
+        var rect = texture.Frame(4, 3, type, Tier, -3, -3);
+        var scale = Scale;
 
-        var rect = texture.Frame(4, 3, type, Tier, -2, -2);
-        var scale = Scale * Height.Pixels / 32;
+        Vector2 origin = rect.Size() * 0.5f;
 
         spriteBatch.End();
         spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, Main.Rasterizer);
 
-        var pos = new Vector2(Left.Pixels, Top.Pixels);
+        var center = new Vector2(Left.Pixels + Width.Pixels / 2, Top.Pixels + Height.Pixels / 2);
 
-        var scaleOffset = (rect.Size() + new Vector2(6)) * (Scale - 1) / 2;
+        spriteBatch.Draw(texture, center, rect, Color.White, 0, origin, scale, SpriteEffects.None, 0);
 
-        spriteBatch.Draw(texture, pos - scaleOffset, rect, Color.White, 0, origin, scale, SpriteEffects.None, 0);
-
-
-        texture = Textures.IconFrame.Value;
-        scale = Scale * (Height.Pixels + 12) / texture.Height;
-
-        var frameOffset = (rect.Size() + new Vector2(12)) * (Scale - 1) / 2;
-        var color = Flash > 0 ? Color.White * 100 : Color.White;
-
-        spriteBatch.Draw(texture, pos - new Vector2(6) - frameOffset, null, color, 0, Vector2.Zero, scale, SpriteEffects.None, 0);
 
         if (Flash != 0 || !Open)
         {
-            if (Flash > 0)
-                spriteBatch.Draw(texture, pos - new Vector2(6) - frameOffset, null, color with { A = 0 }, 0, Vector2.Zero, scale, SpriteEffects.None, 0);
-
             texture = TextureAssets.MagicPixel.Value;
 
-            var PixelScale = Scale * new Vector2(Width.Pixels + 12, Height.Pixels + 12) / new Vector2(texture.Width, texture.Height);
+            var PixelScale = Scale * new Vector2(Width.Pixels, Height.Pixels) / new Vector2(texture.Width, texture.Height);
 
-            color = Flash > 0 ? Color.White : Color.DarkGray;
+            var color = Flash > 0 ? Color.White : Color.DarkGray;
             color *= float.Abs(Flash);
 
-            spriteBatch.Draw(texture, pos - new Vector2(6) - frameOffset, null, color with { A = 150 }, 0, origin, PixelScale, SpriteEffects.None, 0);
+            spriteBatch.Draw(texture, center, null, color with { A = 150 }, 0, texture.Size() * 0.5f, PixelScale, SpriteEffects.None, 0);
         }
 
         if (Scale != 1)
         {
+            var learn = Language.GetTextValue("Mods.MordhauProgression.Traits.Learn");
+            var reset = Language.GetTextValue("Mods.MordhauProgression.Traits.Reset");
+            var chance = Language.GetTextValue("Mods.MordhauProgression.Traits.T2Chance");
+            var bonus = Language.GetTextValue("Mods.MordhauProgression.Traits.T2Bonus");
+
+            var effect = Language.GetTextValue($"Mods.MordhauProgression.Traits.{data.role}.{id.subRole}.{data.index}.T{Math.Max(Tier, 1)}");
+            if (Tier == 1)
+            {
+                effect += "\n";
+                effect += effect.Contains(chance[chance.IndexOf(' ')..]) ? chance : bonus;
+            }
+
+            var open = Tier == 2 ? reset : learn + "\n" + reset;
+            if (!Open)
+                open = string.Format(Language.GetTextValue("Mods.MordhauProgression.Traits.Required"), Language.GetTextValue($"Mods.MordhauProgression.Traits.{data.role}.{id.subRole}.{data.index - 1}.Name"));
+
+
+            var text = $"\n{effect}\n\n{open}";
+
             texture = Textures.Window.Value;
             var font = FontAssets.MouseText.Value;
 
-            var offset = data.row == 1 ? new Vector2(Width.Pixels + scaleOffset.X * 2, -scaleOffset.Y)
-                : new Vector2(Width.Pixels - scaleOffset.X / 2, -scaleOffset.Y);
+            var textSize = ChatManager.GetStringSize(font, text, new Vector2(1f), 160);
             var textOffset = new Vector2(10);
 
-            var textSize = ChatManager.GetStringSize(font, $"{data.role}, {data.index}", new Vector2(1f), 180);
+            var color = Color.DarkSlateGray;
+            color *= (scale - 0.8f);
 
-            origin = data.row == 1 ? Vector2.Zero : new Vector2(textSize.X + Width.Pixels + scaleOffset.X, 0);
+            var desiredSize = textOffset * 2 + textSize;
+            var WindowScale = desiredSize / texture.Size();
 
-            color = Color.DarkSlateGray;
-            color *= (Scale - 0.7f);
+            scale = 1 + 10f / 55f;
 
-            var WindowScale = (new Vector2(20, 20) + textSize) / texture.Size();
+            var pos = data.row == 0 ? center + new Vector2(-Width.Pixels / 2 * scale - desiredSize.X, -Height.Pixels / 2 * scale) : center + new Vector2(Width.Pixels / 2 * scale, -Height.Pixels / 2 * scale);
 
-            spriteBatch.Draw(texture, pos + offset - origin, null, color, 0, Vector2.Zero, WindowScale, SpriteEffects.None, 0);
+            spriteBatch.Draw(texture, pos, null, color, 0, Vector2.Zero, WindowScale, SpriteEffects.None, 0);
+
+
+            color = Tier == 2 ? Color.Gold : Tier == 1 ? Color.AntiqueWhite : Color.WhiteSmoke;
+            color *= Open ? (scale - 0.5f) : (scale - 0.9f);
+
+            ChatManager.DrawColorCodedString(spriteBatch, font, id.name, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
+
+            color = !Open ? Color.Gray : Tier != 0 ? Color.Gold : Color.WhiteSmoke;
+            color *= Open ? (scale - 0.5f) : (scale - 0.9f);
+
+            var textHeight = ChatManager.GetStringSize(font, text, new Vector2(1f), 160).Y;
+
+            if (Tier == 1)
+            {
+                var goldText = effect.Contains(chance) ? chance : bonus;
+
+                goldText = '\n' + goldText;
+                while (ChatManager.GetStringSize(font, text[..text.IndexOf(goldText[(goldText.LastIndexOf("\n") + 1)..])], new Vector2(1f), 160).Y > ChatManager.GetStringSize(font, goldText, new Vector2(1f), 160).Y)
+                {
+                    goldText = '\n' + goldText;
+                }
+                goldText = Tier != 1 ? goldText : '\n' + goldText;
+
+                ChatManager.DrawColorCodedString(spriteBatch, font, goldText, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
+
+                text = Tier != 1 ? text.Replace(effect, "") : effect.Contains(chance) ? text.Replace(chance, "") : text.Replace(bonus, "");
+            }
+
+            while (ChatManager.GetStringSize(font, text, new Vector2(1f), 160).Y < textHeight)
+            {
+                text = "\n" + text;
+            }
+
+            if (!Open)
+            {
+                effect = effect.Contains("\n") ? effect[..effect.IndexOf("\n")] : effect;
+
+                ChatManager.DrawColorCodedString(spriteBatch, font, "\n" + effect, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
+
+                text = text.Replace(effect, "");
+            }
+
+            while (ChatManager.GetStringSize(font, text, new Vector2(1f), 160).Y < textHeight)
+            {
+                text = "\n" + text;
+            }
 
             color = Color.WhiteSmoke;
-            color *= (Scale - 0.7f);
+            color *= Open ? (scale - 0.5f) : (scale - 0.9f);
 
-            ChatManager.DrawColorCodedString(spriteBatch, font, $"{data.role}, {data.index}", pos + offset + textOffset, color, 0, origin, new Vector2(1f), 180);
+
+            ChatManager.DrawColorCodedString(spriteBatch, font, text, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
         }
     }
 
@@ -207,6 +242,8 @@ public class TraitButtonUIElement : UIElement
     public bool Open = false;
 
     public (string role, int row, int index) data = new();
+
+    public (string subRole, string name) id = new();
     #endregion
 
     #region Events
@@ -257,12 +294,44 @@ public class TraitButtonUIElement : UIElement
         if (ContainsPoint(Main.MouseScreen))
         {
             Main.LocalPlayer.mouseInterface = true;
-            Scale = Clamp(Scale + 0.015f, 1, 1.2f);
+            Scale = Clamp(Scale + 0.015f, 1, 1 + 10f / 55f);
         }
 
-        else Scale = Clamp(Scale - 0.015f, 1, 1.2f);
+        else Scale = Clamp(Scale - 0.015f, 1, 1 + 10f / 55f);
 
 
+        var sub = "Warrior";
+        var first = data.row == 0;
+
+        switch (data.role)
+        {
+            case "Melee":
+                if (!first)
+                    sub = "Tank";
+                break;
+
+            case "Ranger":
+                if (first)
+                    sub = "Sharpshooter";
+                else sub = "Archer";
+                break;
+
+            case "Mage":
+                if (first)
+                    sub = "Sorcerer";
+                else sub = "Wizard";
+                break;
+
+            default:
+                if (first)
+                    sub = "Commander";
+                else sub = "Defender"; 
+                break;
+        }
+
+
+        id.name = Language.GetTextValue($"Mods.MordhauProgression.Traits.{data.role}.{sub}.{data.index}.Name");
+        id.subRole = sub;
     }
 
     public void SetTraitData(string role, int row, int index)
@@ -295,12 +364,12 @@ public class TraitButtonUIState : UIState
                 button.Left.Set(pos.X, 0f);
                 button.Top.Set(pos.Y, 0f);
 
-                button.Width.Set(48, 0);
-                button.Height.Set(48, 0);
-                button.MinWidth.Set(48, 0);
-                button.MaxWidth.Set(48, 0);
-                button.MaxHeight.Set(48, 0);
-                button.MinHeight.Set(48, 0);
+                button.Width.Set(66, 0);
+                button.Height.Set(66, 0);
+                button.MinWidth.Set(66, 0);
+                button.MaxWidth.Set(66, 0);
+                button.MaxHeight.Set(66, 0);
+                button.MinHeight.Set(66, 0);
 
                 button.type = (y + x + (float.Sign(i) + 1) / 2) % 4;
                 button.Tier = 0;
@@ -315,16 +384,16 @@ public class TraitButtonUIState : UIState
                 {
                     case < 2:
                         if (float.Sign(i) < 0)
-                            role = "Mewee";
+                            role = "Melee";
                         else
-                            role = "Mag";
+                            role = "Mage";
 
                         break;
                     case < 4:
                         if (float.Sign(i) < 0)
-                            role = "Rangr";
+                            role = "Ranger";
                         else
-                            role = "Summonr";
+                            role = "Summoner";
                         break;
                 }
 

@@ -1,15 +1,223 @@
-Configs: {
-	ClientConfig: {
-		DisplayName: Client Config
+Traits: {
+	Learn: LMB to learn
+	Reset: RMB to reset
+	T2Chance: 2x chance
+	T2Bonus: 2x bonuses
+	Required: "{0} required to learn"
 
-		ButtonUIDraggable: {
-			Label: Button U I Draggable
-			Tooltip: ""
+	Melee: {
+		Warrior: {
+			0: {
+				Name: Dexterity
+				T1: +10% melee attack speed
+				T2: +20% melee attack speed
+			}
+
+			1: {
+				Name: Brute
+				T1: +3 melee armor penetration
+				T2: +6 melee armor penetration
+			}
+
+			2: {
+				Name: Agility
+				T1: +10% chance to dodge an attack while dashing
+				T2: +20% chance to dodge an attack while dashing
+			}
+
+			3: {
+				Name: Oberhau
+				T1: +5% chance for a melee attack to deal 2x damage
+				T2: +10% chance for a melee attack to deal 2x damage
+			}
 		}
 
-		ButtonUIPosition: {
-			Label: Button U I Position
-			Tooltip: ""
+		Tank: {
+			0: {
+				Name: Toughness
+				T1: +7% damage resistance
+				T2: +14% damage resistance
+			}
+
+			1: {
+				Name: Gigantism
+				T1: +30 max life and +10% player size
+				T2: +60 max life and +20% player size
+			}
+
+			2: {
+				Name: Thorns
+				T1: reflect 50% of contact damage taken
+				T2: reflect 100% of contact damage taken
+			}
+
+			3: {
+				Name: Adrenaline
+				T1: attacks that deal less than 30 damage don't deal knockback to you
+				T2: attacks that deal less than 60 damage don't deal knockback to you
+			}
+		}
+	}
+
+	Ranger: {
+		Archer: {
+			0: {
+				Name: Yeomen
+				T1: +2 arrow damage
+				T2: +4 arrow damage
+			}
+
+			1: {
+				Name: Scattershot
+				T1: +10% chance to shoot an additional arrow
+				T2: +20% chance to shoot an additional arrow
+			}
+
+			2: {
+				Name: Fletcher
+				T1: +20% chance to restock an arrow when one hits an enemy
+				T2: +40% chance to restock an arrow when one hits an enemy
+			}
+
+			3: {
+				Name: Proficiency
+				T1: arrows move 10% faster
+				T2: arrows move 20% faster
+			}
+		}
+
+		Sharpshooter: {
+			0: {
+				Name: Keen Sight
+				T1: +5% ranger crit chance
+				T2: +10% ranger crit chance
+			}
+
+			1: {
+				Name: Lucky Shot
+				T1: +7% crit damage
+				T2: +14% crit damage
+			}
+
+			2: {
+				Name: Bodkin Tip
+				T1: +10% chance for a ranged projectile to pierce 1 more enemy
+				T2: +20% chance for a ranged projectile to pierce 1 more enemy
+			}
+
+			3: {
+				Name: Sniper
+				T1: bullets deal more damage the longer they travel, up to +20 damage for 4 seconds
+				T2: bullets deal more damage the longer they travel, up to +40 damage for 4 seconds
+			}
+		}
+	}
+
+	Mage: {
+		Sorcerer: {
+			0: {
+				Name: Talent
+				T1: +10% magic size
+				T2: +20% magic size
+			}
+
+			1: {
+				Name: Mana Vessel
+				T1: +40 max mana
+				T2: +80 max mana
+			}
+
+			2: {
+				Name: Determination
+				T1: consuming a mana star heals you for 10 hp
+				T2: consuming a mana star heals you for 20 hp
+			}
+
+			3: {
+				Name: Plot Armor
+				T1: +5% chance for a meteor to fall onto an enemy when your magic attack hits it
+				T2: +10% chance for a meteor to fall onto an enemy when your magic attack hits it
+			}
+		}
+
+		Wizard: {
+			0: {
+				Name: Observance
+				T1: +4 magic armor penetration
+				T2: +8 magic armor penetration
+			}
+
+			1: {
+				Name: Efficiency
+				T1: -6% mana cost
+				T2: -12% mana cost
+			}
+
+			2: {
+				Name: Mana Attunement
+				T1: passively gain 3 mana every second
+				T2: passively gain 6 mana every second
+			}
+
+			3: {
+				Name: Expert Casting
+				T1: magic projectiles move 10% faster
+				T2: magic projectiles move 20% faster
+			}
+		}
+	}
+
+	Summoner: {
+		Commander: {
+			0: {
+				Name: Precision
+				T1: +3 summon armor penetration
+				T2: +6 summon armor penetration
+			}
+
+			1: {
+				Name: Hand Sleight
+				T1: +10% whip size
+				T2: +20% whip size
+			}
+
+			2: {
+				Name: Charisma
+				T1: +4 tag dmg
+				T2: +8 tag dmg
+			}
+
+			3: {
+				Name: Nurturing
+				T1: a tiny version of the last summoned minion is summoned automatically at no cost
+				T2: 2 tiny versions of the last summoned minion are summoned automatically at no cost
+			}
+		}
+
+		Defender: {
+			0: {
+				Name: Brotherhood
+				T1: +5% summon damage
+				T2: +10% summon damage
+			}
+
+			1: {
+				Name: Pleasantry
+				T1: +1 sentry slot
+				T2: +2 sentry slots
+			}
+
+			2: {
+				Name: Kindness
+				T1: heal a nearby player every 2 seconds when standing still
+				T2: heal a nearby player every second when standing still
+			}
+
+			3: {
+				Name: Medical Supplies
+				T1: sentries heal players nearby by 2 hp/s
+				T2: sentries heal players nearby by 4 hp/s
+			}
 		}
 	}
 }
