@@ -185,7 +185,7 @@ public class ArmorUIElement : UIElement
 
             var open = Tier == 3 ? reset : learn + "\n" + reset;
             var text = $"{name}\n{effect}\n\n{open}";
-            var scale = Scale;
+            var scale = 1 + 12f / 66f;
 
             var color = Color.DarkSlateGray;
             color *= scale - 0.8f;
@@ -203,13 +203,13 @@ public class ArmorUIElement : UIElement
             var sb = Main.spriteBatch;
 
 
-            UIPlayer.CurrentTooltipUI = (new Rectangle((int)Left.Pixels, (int)Top.Pixels, (int)desiredSize.X, (int)desiredSize.Y), () =>
+            UIPlayer.CurrentTooltipUI = () =>
             {
                 var WindowScale = desiredSize / texture.Size();
 
                 scale = 1 + 12f / 66f;
 
-                var pos = center - new Vector2(Width.Pixels / 2 * scale, -Height.Pixels / 2 * scale) - new Vector2(desiredSize.X, 0);
+                var pos = TooltipUIElement.position;
 
                 sb.Draw(texture, pos, null, color, 0, Vector2.Zero, WindowScale, SpriteEffects.None, 0);
 
@@ -227,6 +227,8 @@ public class ArmorUIElement : UIElement
 
                 if (Tier != 3)
                 {
+                    pos += new Vector2(0, desiredSize.Y + 10);
+
                     name = Language.GetTextValue($"Mods.MordhauProgression.Armor.T{Tier + 1}.Prefix") + " " + Language.GetTextValue($"Mods.MordhauProgression.Armor.{type}");
                     text = name + "\n" + Language.GetTextValue($"Mods.MordhauProgression.Armor.T{Tier + 1}.Effect");
                     textSize = ChatManager.GetStringSize(font, text, new Vector2(1f), 140);
@@ -234,7 +236,6 @@ public class ArmorUIElement : UIElement
                     desiredSize = textOffset * 2 + textSize;
                     WindowScale = desiredSize / texture.Size();
 
-                    pos -= new Vector2(desiredSize.X + 10, 0);
 
                     color = Color.DarkSlateGray;
                     color *= scale - 0.8f;
@@ -252,7 +253,7 @@ public class ArmorUIElement : UIElement
 
                     ChatManager.DrawColorCodedString(sb, font, text, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
                 }
-            });
+            };
         }
     }
 }
@@ -261,14 +262,14 @@ public class ArmorUIState : UIState
 {
     public override void OnInitialize()
     {
-        var pos = new Vector2(Main.instance.GraphicsDevice.Viewport.Width / 1.2f, Main.instance.GraphicsDevice.Viewport.Height / 4);
+        var pos = new Vector2(Main.instance.GraphicsDevice.Viewport.Width / 1.33f, Main.instance.GraphicsDevice.Viewport.Height / 2 - 40 - 135);
 
         for (int y = 0; y < 3; y++)
         {
             ArmorUIElement button = new();
             button.SetPadding(0);
 
-            pos += new Vector2(0, 100);
+            pos += new Vector2(0, 90);
 
             button.Left.Set(pos.X, 0f);
             button.Top.Set(pos.Y, 0f);

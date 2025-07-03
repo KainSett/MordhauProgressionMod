@@ -1,23 +1,15 @@
 ﻿using Microsoft.Xna.Framework;
-using MordhauProgression.Common.Config;
 using MordhauProgression.Content.UI;
-using Terraria.GameContent.UI.Elements;
 using Terraria.ModLoader;
 using Terraria.UI;
 using Terraria;
 using Microsoft.Xna.Framework.Graphics;
 using MordhauProgression.Common.Assets;
-using Terraria.GameInput;
-using Terraria.UI.Gamepad;
 using System.Collections.Generic;
 using Terraria.GameContent;
-using System.Linq;
 using System;
-using System.Data;
-using System.Reflection;
 using Terraria.UI.Chat;
 using Terraria.Localization;
-using Terraria.Chat;
 
 namespace MordhauProgression.Content.UI;
 [Autoload(Side = ModSide.Client)]
@@ -93,18 +85,17 @@ public class TraitButtonUIElement : UIElement
 {
     public override void Draw(SpriteBatch spriteBatch)
     {
+        spriteBatch.End();
+        spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, Main.Rasterizer);
 
-        Texture2D texture = Textures.Icons.Value;
+        var center = new Vector2(Left.Pixels + Width.Pixels / 2, Top.Pixels + Height.Pixels / 2);
+
+        var texture = Textures.Icons.Value;
 
         var rect = texture.Frame(4, 3, type, Tier, -3, -3);
         var scale = Scale;
 
         Vector2 origin = rect.Size() * 0.5f;
-
-        spriteBatch.End();
-        spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, Main.Rasterizer);
-
-        var center = new Vector2(Left.Pixels + Width.Pixels / 2, Top.Pixels + Height.Pixels / 2);
 
         spriteBatch.Draw(texture, center, rect, Color.White, 0, origin, scale, SpriteEffects.None, 0);
 
@@ -120,8 +111,6 @@ public class TraitButtonUIElement : UIElement
 
             spriteBatch.Draw(texture, center, null, color with { A = 150 }, 0, texture.Size() * 0.5f, PixelScale, SpriteEffects.None, 0);
         }
-
-        
     }
 
     #region Fields
@@ -138,6 +127,8 @@ public class TraitButtonUIElement : UIElement
     public (string role, int row, int index) data = new();
 
     public (string subRole, string name) id = new();
+
+    public int ActualRow = 0;
     #endregion
 
     #region Events
@@ -201,25 +192,49 @@ public class TraitButtonUIElement : UIElement
         {
             case "Melee":
                 if (!first)
+                {
+                    ActualRow = 1;
                     sub = "Tank";
+                }
                 break;
 
             case "Ranger":
                 if (first)
+                {
+                    ActualRow = 2;
                     sub = "Sharpshooter";
-                else sub = "Archer";
+                }
+                else
+                {
+                    ActualRow = 3;
+                    sub = "Archer"; 
+                }
                 break;
 
             case "Mage":
                 if (first)
+                {
+                    ActualRow = 4;
                     sub = "Sorcerer";
-                else sub = "Wizard";
+                }
+                else
+                {
+                    ActualRow = 5; 
+                    sub = "Wizard"; 
+                }
                 break;
 
             default:
                 if (first)
+                {
+                    ActualRow = 6;
                     sub = "Commander";
-                else sub = "Defender";
+                }
+                else
+                {
+                    ActualRow = 7; 
+                    sub = "Defender"; 
+                }
                 break;
         }
 
@@ -229,6 +244,7 @@ public class TraitButtonUIElement : UIElement
 
         if (Scale != 1)
         {
+            RoleUISystem.HoveredRow = ActualRow;
             var learn = Language.GetTextValue("Mods.MordhauProgression.Tooltips.Learn");
             var reset = Language.GetTextValue("Mods.MordhauProgression.Tooltips.Reset");
             var chance = Language.GetTextValue("Mods.MordhauProgression.Tooltips.T2Chance");
@@ -247,7 +263,7 @@ public class TraitButtonUIElement : UIElement
 
 
             var text = $"\n{effect}\n\n{open}";
-            var scale = Scale;
+            var scale = 1 + 12f / 66f;
 
             var texture = Textures.Window.Value;
             var font = FontAssets.MouseText.Value;
@@ -260,17 +276,16 @@ public class TraitButtonUIElement : UIElement
 
             var desiredSize = textOffset * 2 + textSize;
 
-            var center = new Vector2(Left.Pixels + Width.Pixels / 2, Top.Pixels + Height.Pixels / 2);
             var sb = Main.spriteBatch;
 
 
-            UIPlayer.CurrentTooltipUI = (new Rectangle((int)Left.Pixels, (int)Top.Pixels, (int)desiredSize.X, (int)desiredSize.Y), () =>
+            UIPlayer.CurrentTooltipUI = () =>
             {
                 var WindowScale = desiredSize / texture.Size();
 
                 scale = 1 + 12f / 66f;
 
-                var pos = data.row == 0 ? center + new Vector2(-Width.Pixels / 2 * scale - desiredSize.X, -Height.Pixels / 2 * scale) : center + new Vector2(Width.Pixels / 2 * scale, -Height.Pixels / 2 * scale);
+                var pos = TooltipUIElement.position;
 
                 sb.Draw(texture, pos, null, color, 0, Vector2.Zero, WindowScale, SpriteEffects.None, 0);
 
@@ -325,7 +340,7 @@ public class TraitButtonUIElement : UIElement
 
 
                 ChatManager.DrawColorCodedString(sb, font, text, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
-            });
+            };
         }
     }
 
@@ -341,19 +356,16 @@ public class TraitButtonUIState : UIState
 {
     public override void OnInitialize()
     {
-        var screenHalved = new Vector2(Main.instance.GraphicsDevice.Viewport.Width / 2, Main.instance.GraphicsDevice.Viewport.Height / 2);
+        var screenHalved = new Vector2(Main.instance.GraphicsDevice.Viewport.Width / 2, Main.instance.GraphicsDevice.Viewport.Height / 2 - 40 - 90);
 
-        for (int x = 0; x < 4; x++)
+        for (int x = 0; x < 8; x++)
         {
-            for (int y = 0; y < 8; y++)
+            for (int y = 0; y < 4; y++)
             {
                 TraitButtonUIElement button = new();
                 button.SetPadding(0);
 
-                var i = y - 3.5f;
-                i += float.Sign(i) * 0.5f;
-
-                var pos = new Vector2(x * 200 - 50 * (x % 2) - 325, i * 80);
+                var pos = new Vector2(x * 110 - 20 * (x % 2) - 375 - 33, y * 90);
                 pos += screenHalved;
 
                 button.Left.Set(pos.X, 0f);
@@ -366,32 +378,21 @@ public class TraitButtonUIState : UIState
                 button.MaxHeight.Set(66, 0);
                 button.MinHeight.Set(66, 0);
 
-                button.type = (y + x + (float.Sign(i) + 1) / 2) % 4;
+                button.type = y;
                 button.Tier = 0;
 
                 Append(button);
 
 
                 var row = x % 2;
-                var index = 4 - (int)Math.Floor(float.Abs(i));
-                var role = "Melee";
-                switch (x)
+                var index = y;
+                var role = x switch
                 {
-                    case < 2:
-                        if (float.Sign(i) < 0)
-                            role = "Melee";
-                        else
-                            role = "Mage";
-
-                        break;
-                    case < 4:
-                        if (float.Sign(i) < 0)
-                            role = "Ranger";
-                        else
-                            role = "Summoner";
-                        break;
-                }
-
+                    < 2 => "Melee",
+                    < 4 => "Ranger",
+                    < 6 => "Mage",
+                    _ => "Summoner",
+                };
                 TraitButtonUISystem.TraitRegistry.Add((role, row, index, button));
                 button.SetTraitData(role, row, index);
 

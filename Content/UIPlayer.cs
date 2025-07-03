@@ -16,9 +16,11 @@ public class UIPlayer : ModPlayer
 
     public HashSet<(string role, int row, int index, TraitButtonUIElement trait)> SkillTree = [];
 
+    public static List<(int row, int level)> SubRoleLevel = [];
+
     public HashSet<ArmorUIElement> Armor = [];
 
-    public static (Rectangle area, Action action) CurrentTooltipUI = new();
+    public static Action CurrentTooltipUI = new(() => { });
 
     public override void ResetEffects()
     {
@@ -29,6 +31,7 @@ public class UIPlayer : ModPlayer
             ModContent.GetInstance<WindowUISystem>()?.OpenUI();
             ModContent.GetInstance<TraitButtonUISystem>()?.Show();
             ModContent.GetInstance<ArmorUISystem>()?.Show();
+            ModContent.GetInstance<RoleUISystem>()?.Show();
         }
 
         if (WindowUISystem.IsActive() != true)
@@ -37,24 +40,34 @@ public class UIPlayer : ModPlayer
             Armor.Clear();
             ModContent.GetInstance<TraitButtonUISystem>()?.Hide();
             ModContent.GetInstance<ArmorUISystem>()?.Hide();
+            ModContent.GetInstance<RoleUISystem>()?.Hide();
         }
         else
         {
-            if (CurrentTooltipUI.area != Rectangle.Empty)
-                ModContent.GetInstance<TooltipUISystem>()?.Show(CurrentTooltipUI.area, CurrentTooltipUI.action);
+            if (CurrentTooltipUI != null)
+                ModContent.GetInstance<TooltipUISystem>()?.Show(CurrentTooltipUI);
 
             else ModContent.GetInstance<TooltipUISystem>()?.Hide();
 
 
-            CurrentTooltipUI = (Rectangle.Empty, null);
+            CurrentTooltipUI = null;
         }
 
 
         if (SkillTree?.Count == 0)
             return;
 
+        SubRoleLevel.Clear();
+        for (int i = 0; i < 8; i++)
+            SubRoleLevel.Add((i, 0));
+
+
         foreach (var (role, row, index, trait) in SkillTree)
         {
+            var value = SubRoleLevel.First(l => l.row == trait.ActualRow);
+            SubRoleLevel[value.row] = (value.row, trait.Tier + value.level);
+            
+
             if (index == 0)
                 trait.Open = true;
 

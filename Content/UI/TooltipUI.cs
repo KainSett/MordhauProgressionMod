@@ -21,7 +21,7 @@ public class TooltipUISystem : ModSystem
     public Action Draw = new(() => { });
 
 
-    public void Show(Rectangle area, Action draw)
+    public void Show(Action draw)
     {
         Interface?.SetState(state);
 
@@ -29,10 +29,6 @@ public class TooltipUISystem : ModSystem
         if (element == null)
             return;
 
-        element.Top.Set(area.Y, 0);
-        element.Left.Set(area.X, 0);
-        element.Width.Set(area.Width, 0);
-        element.Height.Set(area.Height, 0);
 
         Draw = draw;
     }
@@ -88,6 +84,8 @@ public class TooltipUISystem : ModSystem
 
 public class TooltipUIElement : UIElement
 {
+    public static Vector2 position = new();
+
     public override void Draw(SpriteBatch spriteBatch)
     {
         ModContent.GetInstance<TooltipUISystem>()?.Draw?.Invoke();
@@ -103,11 +101,13 @@ public class TooltipUIState : UIState
 {
     public override void OnInitialize()
     {
+        TooltipUIElement.position = new Vector2(Main.instance.GraphicsDevice.Viewport.Width / 2 - 600, Main.instance.GraphicsDevice.Viewport.Height / 2 - 40 - 250);
+
         TooltipUIElement element = new();
         element.SetPadding(0);
 
-        element.Left.Set(0, 0f);
-        element.Top.Set(0, 0f);
+        element.Left.Set(TooltipUIElement.position.X, 0f);
+        element.Top.Set(TooltipUIElement.position.Y, 0f);
 
         element.Width.Set(160, 0);
         element.Height.Set(160, 0);
