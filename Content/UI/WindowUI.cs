@@ -105,7 +105,7 @@ public class WindowUIElement : UIElement
                 : "Summoner";
 
 
-            var offset = i > 1 ? 128 : -128;
+            var offset = i > 1 ? 90 : -90;
             var pos = Vector2.Zero;
 
             List<Vector2> fChain = [];

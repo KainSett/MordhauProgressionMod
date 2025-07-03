@@ -1,10 +1,59 @@
-Traits: {
-	Learn: LMB to learn
+Tooltips: {
+	Learn: LMB to upgrade
 	Reset: RMB to reset
 	T2Chance: 2x chance
 	T2Bonus: 2x bonuses
 	Required: "{0} required to learn"
+	Current: Current
+}
 
+Armor: {
+	0: Helmet
+	1: Cuirass
+	2: Greaves
+
+	T0: {
+		Prefix: Crude
+		Effect:
+			'''
+			-11% max life
+			-5% defense effectiveness
+			+5% movement speed
+			'''
+	}
+
+	T1: {
+		Prefix: Light
+		Effect:
+			'''
+			-25 max life
+			-2% defense effectiveness
+			+2% movement speed
+			'''
+	}
+
+	T2: {
+		Prefix: Medium
+		Effect:
+			'''
+			+10 max life
+			+2% damage resistance
+			-2% movement speed
+			'''
+	}
+
+	T3: {
+		Prefix: Heavy
+		Effect:
+			'''
+			+5% max life
+			+2% defense effectiveness
+			-5% movement speed
+			'''
+	}
+}
+
+Traits: {
 	Melee: {
 		Warrior: {
 			0: {
@@ -27,8 +76,8 @@ Traits: {
 
 			3: {
 				Name: Oberhau
-				T1: +5% chance for a melee attack to deal 2x damage
-				T2: +10% chance for a melee attack to deal 2x damage
+				T1: +5% chance for a melee attack to deal double damage
+				T2: +10% chance for a melee attack to deal double damage
 			}
 		}
 
@@ -47,14 +96,14 @@ Traits: {
 
 			2: {
 				Name: Thorns
-				T1: reflect 50% of contact damage taken
-				T2: reflect 100% of contact damage taken
+				T1: Reflect 50% of contact damage taken
+				T2: Reflect 100% of contact damage taken
 			}
 
 			3: {
 				Name: Adrenaline
-				T1: attacks that deal less than 30 damage don't deal knockback to you
-				T2: attacks that deal less than 60 damage don't deal knockback to you
+				T1: Attacks that deal less than 30 damage don't deal knockback to you
+				T2: Attacks that deal less than 60 damage don't deal knockback to you
 			}
 		}
 	}
@@ -81,8 +130,8 @@ Traits: {
 
 			3: {
 				Name: Proficiency
-				T1: arrows move 10% faster
-				T2: arrows move 20% faster
+				T1: Arrows move 10% faster
+				T2: Arrows move 20% faster
 			}
 		}
 
@@ -107,8 +156,8 @@ Traits: {
 
 			3: {
 				Name: Sniper
-				T1: bullets deal more damage the longer they travel, up to +20 damage for 4 seconds
-				T2: bullets deal more damage the longer they travel, up to +40 damage for 4 seconds
+				T1: Bullets deal more damage the longer they travel, up to +20 damage for 4 seconds
+				T2: Bullets deal more damage the longer they travel, up to +40 damage for 4 seconds
 			}
 		}
 	}
@@ -129,8 +178,8 @@ Traits: {
 
 			2: {
 				Name: Determination
-				T1: consuming a mana star heals you for 10 hp
-				T2: consuming a mana star heals you for 20 hp
+				T1: Consuming a mana star heals you for 10 life
+				T2: Consuming a mana star heals you for 20 life
 			}
 
 			3: {
@@ -155,14 +204,14 @@ Traits: {
 
 			2: {
 				Name: Mana Attunement
-				T1: passively gain 3 mana every second
-				T2: passively gain 6 mana every second
+				T1: Passively gain 3 mana every second
+				T2: Passively gain 6 mana every second
 			}
 
 			3: {
 				Name: Expert Casting
-				T1: magic projectiles move 10% faster
-				T2: magic projectiles move 20% faster
+				T1: Magic projectiles move 10% faster
+				T2: Magic projectiles move 20% faster
 			}
 		}
 	}
@@ -189,7 +238,7 @@ Traits: {
 
 			3: {
 				Name: Nurturing
-				T1: a tiny version of the last summoned minion is summoned automatically at no cost
+				T1: A tiny version of the last summoned minion is summoned automatically at no cost
 				T2: 2 tiny versions of the last summoned minion are summoned automatically at no cost
 			}
 		}
@@ -209,14 +258,14 @@ Traits: {
 
 			2: {
 				Name: Kindness
-				T1: heal a nearby player every 2 seconds when standing still
-				T2: heal a nearby player every second when standing still
+				T1: Heal a nearby player every 2 seconds when standing still
+				T2: Heal a nearby player every second when standing still
 			}
 
 			3: {
 				Name: Medical Supplies
-				T1: sentries heal players nearby by 2 hp/s
-				T2: sentries heal players nearby by 4 hp/s
+				T1: Sentries heal players nearby by 2 hp/s
+				T2: Sentries heal players nearby by 4 hp/s
 			}
 		}
 	}

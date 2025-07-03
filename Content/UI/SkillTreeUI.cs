@@ -54,24 +54,8 @@ public class TraitButtonUISystem : ModSystem
         state = new TraitButtonUIState();
         Interface = new UserInterface();
         state.Activate();
-
-        On_PlayerInput.SetZoom_UI += On_PlayerInput_SetZoom_UI;
     }
 
-    private void On_PlayerInput_SetZoom_UI(On_PlayerInput.orig_SetZoom_UI orig)
-    {
-        var cond = Main.inFancyUI && WindowUISystem.IsActive();
-        if (cond)
-        {
-            var oldScale = Main.UIScale;
-            Main.UIScale = 1f;
-
-            orig();
-
-            Main.UIScale = oldScale;
-        }
-        else orig();
-    }
 
     public bool IsActive()
     {
@@ -137,97 +121,7 @@ public class TraitButtonUIElement : UIElement
             spriteBatch.Draw(texture, center, null, color with { A = 150 }, 0, texture.Size() * 0.5f, PixelScale, SpriteEffects.None, 0);
         }
 
-        if (Scale != 1)
-        {
-            var learn = Language.GetTextValue("Mods.MordhauProgression.Traits.Learn");
-            var reset = Language.GetTextValue("Mods.MordhauProgression.Traits.Reset");
-            var chance = Language.GetTextValue("Mods.MordhauProgression.Traits.T2Chance");
-            var bonus = Language.GetTextValue("Mods.MordhauProgression.Traits.T2Bonus");
-
-            var effect = Language.GetTextValue($"Mods.MordhauProgression.Traits.{data.role}.{id.subRole}.{data.index}.T{Math.Max(Tier, 1)}");
-            if (Tier == 1)
-            {
-                effect += "\n";
-                effect += effect.Contains(chance[chance.IndexOf(' ')..]) ? chance : bonus;
-            }
-
-            var open = Tier == 2 ? reset : learn + "\n" + reset;
-            if (!Open)
-                open = string.Format(Language.GetTextValue("Mods.MordhauProgression.Traits.Required"), Language.GetTextValue($"Mods.MordhauProgression.Traits.{data.role}.{id.subRole}.{data.index - 1}.Name"));
-
-
-            var text = $"\n{effect}\n\n{open}";
-
-            texture = Textures.Window.Value;
-            var font = FontAssets.MouseText.Value;
-
-            var textSize = ChatManager.GetStringSize(font, text, new Vector2(1f), 160);
-            var textOffset = new Vector2(10);
-
-            var color = Color.DarkSlateGray;
-            color *= (scale - 0.8f);
-
-            var desiredSize = textOffset * 2 + textSize;
-            var WindowScale = desiredSize / texture.Size();
-
-            scale = 1 + 10f / 55f;
-
-            var pos = data.row == 0 ? center + new Vector2(-Width.Pixels / 2 * scale - desiredSize.X, -Height.Pixels / 2 * scale) : center + new Vector2(Width.Pixels / 2 * scale, -Height.Pixels / 2 * scale);
-
-            spriteBatch.Draw(texture, pos, null, color, 0, Vector2.Zero, WindowScale, SpriteEffects.None, 0);
-
-
-            color = Tier == 2 ? Color.Gold : Tier == 1 ? Color.AntiqueWhite : Color.WhiteSmoke;
-            color *= Open ? (scale - 0.5f) : (scale - 0.9f);
-
-            ChatManager.DrawColorCodedString(spriteBatch, font, id.name, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
-
-            color = !Open ? Color.Gray : Tier != 0 ? Color.Gold : Color.WhiteSmoke;
-            color *= Open ? (scale - 0.5f) : (scale - 0.9f);
-
-            var textHeight = ChatManager.GetStringSize(font, text, new Vector2(1f), 160).Y;
-
-            if (Tier == 1)
-            {
-                var goldText = effect.Contains(chance) ? chance : bonus;
-
-                goldText = '\n' + goldText;
-                while (ChatManager.GetStringSize(font, text[..text.IndexOf(goldText[(goldText.LastIndexOf("\n") + 1)..])], new Vector2(1f), 160).Y > ChatManager.GetStringSize(font, goldText, new Vector2(1f), 160).Y)
-                {
-                    goldText = '\n' + goldText;
-                }
-                goldText = Tier != 1 ? goldText : '\n' + goldText;
-
-                ChatManager.DrawColorCodedString(spriteBatch, font, goldText, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
-
-                text = Tier != 1 ? text.Replace(effect, "") : effect.Contains(chance) ? text.Replace(chance, "") : text.Replace(bonus, "");
-            }
-
-            while (ChatManager.GetStringSize(font, text, new Vector2(1f), 160).Y < textHeight)
-            {
-                text = "\n" + text;
-            }
-
-            if (!Open)
-            {
-                effect = effect.Contains("\n") ? effect[..effect.IndexOf("\n")] : effect;
-
-                ChatManager.DrawColorCodedString(spriteBatch, font, "\n" + effect, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
-
-                text = text.Replace(effect, "");
-            }
-
-            while (ChatManager.GetStringSize(font, text, new Vector2(1f), 160).Y < textHeight)
-            {
-                text = "\n" + text;
-            }
-
-            color = Color.WhiteSmoke;
-            color *= Open ? (scale - 0.5f) : (scale - 0.9f);
-
-
-            ChatManager.DrawColorCodedString(spriteBatch, font, text, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
-        }
+        
     }
 
     #region Fields
@@ -294,10 +188,10 @@ public class TraitButtonUIElement : UIElement
         if (ContainsPoint(Main.MouseScreen))
         {
             Main.LocalPlayer.mouseInterface = true;
-            Scale = Clamp(Scale + 0.015f, 1, 1 + 10f / 55f);
+            Scale = Clamp(Scale + 0.015f, 1, 1 + 12f / 66f);
         }
 
-        else Scale = Clamp(Scale - 0.015f, 1, 1 + 10f / 55f);
+        else Scale = Clamp(Scale - 0.015f, 1, 1 + 12f / 66f);
 
 
         var sub = "Warrior";
@@ -325,13 +219,114 @@ public class TraitButtonUIElement : UIElement
             default:
                 if (first)
                     sub = "Commander";
-                else sub = "Defender"; 
+                else sub = "Defender";
                 break;
         }
 
 
         id.name = Language.GetTextValue($"Mods.MordhauProgression.Traits.{data.role}.{sub}.{data.index}.Name");
         id.subRole = sub;
+
+        if (Scale != 1)
+        {
+            var learn = Language.GetTextValue("Mods.MordhauProgression.Tooltips.Learn");
+            var reset = Language.GetTextValue("Mods.MordhauProgression.Tooltips.Reset");
+            var chance = Language.GetTextValue("Mods.MordhauProgression.Tooltips.T2Chance");
+            var bonus = Language.GetTextValue("Mods.MordhauProgression.Tooltips.T2Bonus");
+
+            var effect = Language.GetTextValue($"Mods.MordhauProgression.Traits.{data.role}.{id.subRole}.{data.index}.T{Math.Max(Tier, 1)}");
+            if (Tier == 1)
+            {
+                effect += "\n";
+                effect += effect.Contains(chance[chance.IndexOf(' ')..]) ? chance : bonus;
+            }
+
+            var open = Tier == 2 ? reset : learn + "\n" + reset;
+            if (!Open)
+                open = string.Format(Language.GetTextValue("Mods.MordhauProgression.Tooltips.Required"), Language.GetTextValue($"Mods.MordhauProgression.Traits.{data.role}.{id.subRole}.{data.index - 1}.Name"));
+
+
+            var text = $"\n{effect}\n\n{open}";
+            var scale = Scale;
+
+            var texture = Textures.Window.Value;
+            var font = FontAssets.MouseText.Value;
+
+            var textSize = ChatManager.GetStringSize(font, text, new Vector2(1f), 160);
+            var textOffset = new Vector2(10);
+
+            var color = Color.DarkSlateGray;
+            color *= (scale - 0.8f);
+
+            var desiredSize = textOffset * 2 + textSize;
+
+            var center = new Vector2(Left.Pixels + Width.Pixels / 2, Top.Pixels + Height.Pixels / 2);
+            var sb = Main.spriteBatch;
+
+
+            UIPlayer.CurrentTooltipUI = (new Rectangle((int)Left.Pixels, (int)Top.Pixels, (int)desiredSize.X, (int)desiredSize.Y), () =>
+            {
+                var WindowScale = desiredSize / texture.Size();
+
+                scale = 1 + 12f / 66f;
+
+                var pos = data.row == 0 ? center + new Vector2(-Width.Pixels / 2 * scale - desiredSize.X, -Height.Pixels / 2 * scale) : center + new Vector2(Width.Pixels / 2 * scale, -Height.Pixels / 2 * scale);
+
+                sb.Draw(texture, pos, null, color, 0, Vector2.Zero, WindowScale, SpriteEffects.None, 0);
+
+
+                color = Tier == 2 ? Color.Khaki.MultiplyRGB(Color.Khaki) : Tier == 1 ? Color.AntiqueWhite : Color.WhiteSmoke;
+                color *= Open ? (scale - 0.5f) : (scale - 0.9f);
+
+                ChatManager.DrawColorCodedString(sb, font, id.name, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
+
+                color = !Open ? Color.Gray : Tier != 0 ? Color.Khaki.MultiplyRGB(Color.Khaki) : Color.WhiteSmoke;
+                color *= Open ? (scale - 0.5f) : (scale - 0.9f);
+
+                var textHeight = ChatManager.GetStringSize(font, text, new Vector2(1f), 160).Y;
+
+                if (Tier == 1)
+                {
+                    var goldText = effect.Contains(chance) ? chance : bonus;
+
+                    goldText = '\n' + goldText;
+                    while (ChatManager.GetStringSize(font, text[..text.IndexOf(goldText[(goldText.LastIndexOf("\n") + 1)..])], new Vector2(1f), 160).Y > ChatManager.GetStringSize(font, goldText, new Vector2(1f), 160).Y)
+                    {
+                        goldText = '\n' + goldText;
+                    }
+                    goldText = Tier != 1 ? goldText : '\n' + goldText;
+
+                    ChatManager.DrawColorCodedString(sb, font, goldText, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
+
+                    text = Tier != 1 ? text.Replace(effect, "") : effect.Contains(chance) ? text.Replace(chance, "") : text.Replace(bonus, "");
+                }
+
+                while (ChatManager.GetStringSize(font, text, new Vector2(1f), 160).Y < textHeight)
+                {
+                    text = "\n" + text;
+                }
+
+                if (!Open)
+                {
+                    effect = effect.Contains("\n") ? effect[..effect.IndexOf("\n")] : effect;
+
+                    ChatManager.DrawColorCodedString(sb, font, "\n" + effect, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
+
+                    text = text.Replace(effect, "");
+                }
+
+                while (ChatManager.GetStringSize(font, text, new Vector2(1f), 160).Y < textHeight)
+                {
+                    text = "\n" + text;
+                }
+
+                color = Color.WhiteSmoke;
+                color *= Open ? (scale - 0.5f) : (scale - 0.9f);
+
+
+                ChatManager.DrawColorCodedString(sb, font, text, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
+            });
+        }
     }
 
     public void SetTraitData(string role, int row, int index)

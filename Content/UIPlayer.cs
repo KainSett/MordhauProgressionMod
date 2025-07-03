@@ -4,6 +4,7 @@ using Terraria.ModLoader;
 using Terraria;
 using MordhauProgression.Content.UI;
 using System.Linq;
+using System;
 
 namespace MordhauProgression.Content;
 
@@ -15,19 +16,37 @@ public class UIPlayer : ModPlayer
 
     public HashSet<(string role, int row, int index, TraitButtonUIElement trait)> SkillTree = [];
 
+    public HashSet<ArmorUIElement> Armor = [];
+
+    public static (Rectangle area, Action action) CurrentTooltipUI = new();
+
     public override void ResetEffects()
     {
         if (Main.LocalPlayer.velocity.Y < 0)
         {
             ModContent.GetInstance<TraitButtonUISystem>()?.Hide();
+            ModContent.GetInstance<ArmorUISystem>()?.Hide();
             ModContent.GetInstance<WindowUISystem>()?.OpenUI();
             ModContent.GetInstance<TraitButtonUISystem>()?.Show();
+            ModContent.GetInstance<ArmorUISystem>()?.Show();
         }
 
         if (WindowUISystem.IsActive() != true)
         {
             SkillTree.Clear();
+            Armor.Clear();
             ModContent.GetInstance<TraitButtonUISystem>()?.Hide();
+            ModContent.GetInstance<ArmorUISystem>()?.Hide();
+        }
+        else
+        {
+            if (CurrentTooltipUI.area != Rectangle.Empty)
+                ModContent.GetInstance<TooltipUISystem>()?.Show(CurrentTooltipUI.area, CurrentTooltipUI.action);
+
+            else ModContent.GetInstance<TooltipUISystem>()?.Hide();
+
+
+            CurrentTooltipUI = (Rectangle.Empty, null);
         }
 
 

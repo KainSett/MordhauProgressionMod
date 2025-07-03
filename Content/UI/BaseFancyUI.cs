@@ -65,11 +65,13 @@ public class HideResourceBarsSystem : ModSystem
     public override void Load()
     {
         On_Main.GUIBarsDrawInner += StopBarsInFancyUI;
+        On_PlayerInput.SetZoom_UI += On_PlayerInput_SetZoom_UI;
     }
 
     public override void Unload()
     {
         On_Main.GUIBarsDrawInner -= StopBarsInFancyUI;
+        On_PlayerInput.SetZoom_UI -= On_PlayerInput_SetZoom_UI;
     }
 
     public static void DrawSpecificLayers(string[] names)
@@ -83,6 +85,7 @@ public class HideResourceBarsSystem : ModSystem
                 l.Draw();
 
             UILayers.RemoveAt(i);
+            i--;
         }
         Main.spriteBatch.Begin();
     }
@@ -100,5 +103,20 @@ public class HideResourceBarsSystem : ModSystem
         {
             DrawSpecificLayers([..NameList]);
         }
+    }
+
+    private void On_PlayerInput_SetZoom_UI(On_PlayerInput.orig_SetZoom_UI orig)
+    {
+        var cond = Main.inFancyUI && WindowUISystem.IsActive();
+        if (cond)
+        {
+            var oldScale = Main.UIScale;
+            Main.UIScale = 1f;
+
+            orig();
+
+            Main.UIScale = oldScale;
+        }
+        else orig();
     }
 }
