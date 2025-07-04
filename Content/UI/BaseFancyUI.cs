@@ -66,12 +66,46 @@ public class HideResourceBarsSystem : ModSystem
     {
         On_Main.GUIBarsDrawInner += StopBarsInFancyUI;
         On_PlayerInput.SetZoom_UI += On_PlayerInput_SetZoom_UI;
+        On_UIElement.Recalculate += UnZoomForMyUI;
+        On_UIElement.Update += UnZoomForUpdate;
+    }
+
+    private void UnZoomForUpdate(On_UIElement.orig_Update orig, UIElement self, GameTime gameTime)
+    {
+        var cond = self.Parent is PointUIState;
+        if (cond)
+        {
+            var oldScale = Main.UIScale;
+            Main.UIScale = 1f;
+
+            orig(self, gameTime);
+
+            Main.UIScale = oldScale;
+        }
+        else orig(self, gameTime);
     }
 
     public override void Unload()
     {
         On_Main.GUIBarsDrawInner -= StopBarsInFancyUI;
         On_PlayerInput.SetZoom_UI -= On_PlayerInput_SetZoom_UI;
+        On_UIElement.Recalculate -= UnZoomForMyUI;
+        On_UIElement.Update -= UnZoomForUpdate;
+    }
+
+    private void UnZoomForMyUI(On_UIElement.orig_Recalculate orig, UIElement self)
+    {
+        var cond = self.Parent is PointUIState;
+        if (cond)
+        {
+            var oldScale = Main.UIScale;
+            Main.UIScale = 1f;
+
+            orig(self);
+
+            Main.UIScale = oldScale;
+        }
+        else orig(self);
     }
 
     public static void DrawSpecificLayers(string[] names)

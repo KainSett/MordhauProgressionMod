@@ -37,12 +37,12 @@ public class UIPlayer : ModPlayer
         if (WindowUISystem.IsActive() != true)
         {
             SkillTree.Clear();
-            Armor.Clear();
             CurrentTooltipUI = null;
             ModContent.GetInstance<TraitButtonUISystem>()?.Hide();
             ModContent.GetInstance<ArmorUISystem>()?.Hide();
             ModContent.GetInstance<RoleUISystem>()?.Hide();
             ModContent.GetInstance<TooltipUISystem>()?.Hide();
+            ModContent.GetInstance<PointUISystem>()?.Show();
         }
         else
         {
@@ -53,6 +53,7 @@ public class UIPlayer : ModPlayer
 
 
             CurrentTooltipUI = null;
+            ModContent.GetInstance<PointUISystem>()?.Hide();
         }
 
 

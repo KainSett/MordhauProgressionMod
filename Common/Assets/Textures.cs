@@ -14,7 +14,7 @@ public static class Textures
 
     public static readonly Asset<Texture2D> Icons = LoadTexture2D("UI/Icons");
 
-    public static readonly Asset<Texture2D> Point = LoadTexture2D("UI/Point");
+    public static readonly Asset<Texture2D> Coins = LoadTexture2D("UI/TierCoins");
 
     public static readonly Asset<Texture2D> Armor = LoadTexture2D("UI/Armor");
 

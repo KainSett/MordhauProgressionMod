@@ -1,8 +1,8 @@
 Tooltips: {
 	Learn: LMB to upgrade
 	Reset: RMB to reset
-	T2Chance: 2x chance
-	T2Bonus: 2x bonuses
+	T2Chance: +{0} chance
+	T2Bonus: +{0} bonus
 	Required: "{0} required to learn"
 	Current: (Current)
 }
@@ -96,8 +96,8 @@ Traits: {
 
 			1: {
 				Name: Gigantism
-				T1: +30 max life and +10% player size
-				T2: +60 max life and +20% player size
+				T1: +30 max life
+				T2: +60 max life
 			}
 
 			2: {
@@ -260,7 +260,7 @@ Traits: {
 
 			3: {
 				Name: Nurturing
-				T1: A tiny version of the last summoned minion is summoned automatically at no cost
+				T1: 1 tiny version of the last summoned minion is summoned automatically at no cost
 				T2: 2 tiny versions of the last summoned minion are summoned automatically at no cost
 			}
 		}

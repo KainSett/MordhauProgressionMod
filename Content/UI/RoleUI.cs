@@ -97,12 +97,24 @@ public class RoleUIElement : UIElement
             spriteBatch.Draw(texture, center, rect, c, 0, origin, scale, SpriteEffects.None, 0);
         }
 
+        var color = Color.Gold with { A = 50 };
+
         var level = UIPlayer.SubRoleLevel[index.row].level;
         if (level != 0)
         {
             var cutRect = rect with { Height = (int)(rect.Height * (level / 8f)), Y = (int)(rect.Height - rect.Height * (level / 8f)) };
 
-            spriteBatch.Draw(texture, center + new Vector2(0, rect.Height - rect.Height * (level / 8f)), cutRect, Color.Gold with { A = 50 }, 0, origin, scale, SpriteEffects.None, 0);
+            if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var player))
+            {
+                if (player.SkillTree.Any(e => e.trait.Flash > 0 && e.trait.ActualRow == index.row))
+                {
+                    
+                    color *= 0.5f + player.SkillTree.First(e => e.trait.Flash > 0 && e.trait.ActualRow == index.row).trait.Flash;
+                    color.A = 0;
+                }
+            }
+
+            spriteBatch.Draw(texture, center + new Vector2(0, rect.Height - rect.Height * (level / 8f)), cutRect, color, 0, origin, scale, SpriteEffects.None, 0);
         }
 
 
@@ -112,8 +124,8 @@ public class RoleUIElement : UIElement
         var text = Language.GetTextValue($"Mods.MordhauProgression.Traits.{index.role}.{index.name}.Name");
         var textSize = ChatManager.GetStringSize(font, text, Scale);
 
-        var color = Color.Khaki.MultiplyRGB(Color.Khaki * 2) * (level / 8f);
-        color *= RoleUISystem.HoveredRow == index.row ? 0.5f : 0.25f;
+        color = Color.Khaki.MultiplyRGB(Color.Khaki * 1.5f) * (level / 8f);
+        color *= RoleUISystem.HoveredRow == index.row ? 0.66f : 0.44f;
 
         center += new Vector2(-textSize.X / 2, Height.Pixels / 2);
 
@@ -123,7 +135,7 @@ public class RoleUIElement : UIElement
         color *= RoleUISystem.HoveredRow == index.row ? 0.5f : 0.25f;
         color *= 1 - (level / 8f);
 
-        ChatManager.DrawColorCodedString(spriteBatch, font, text, center - new Vector2(0, 0), color with { A = 0 }, 0, Vector2.Zero, Scale, 160);
+        ChatManager.DrawColorCodedString(spriteBatch, font, text, center - new Vector2(0, 0), color with { A = 50 }, 0, Vector2.Zero, Scale, 160);
 
 
         if (index.row % 2 == 0)

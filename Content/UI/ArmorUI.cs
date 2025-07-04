@@ -25,19 +25,20 @@ public class ArmorUISystem : ModSystem
     {
         Interface?.SetState(state);
 
-        foreach (var part in ArmorRegistry)
+        if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var p))
         {
-            if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var p))
+            p.Armor?.Clear();
+
+            foreach (var part in ArmorRegistry)
+            {
                 p.Armor?.Add(part);
+            }
         }
     }
 
     public void Hide()
     {
         Interface?.SetState(null);
-
-        if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var p))
-            p.Armor?.Clear();
     }
 
     public override void Load()

@@ -10,6 +10,7 @@ using Terraria.GameContent;
 using System;
 using Terraria.UI.Chat;
 using Terraria.Localization;
+using System.Linq;
 
 namespace MordhauProgression.Content.UI;
 [Autoload(Side = ModSide.Client)]
@@ -245,43 +246,60 @@ public class TraitButtonUIElement : UIElement
         if (Scale != 1)
         {
             RoleUISystem.HoveredRow = ActualRow;
-            var learn = Language.GetTextValue("Mods.MordhauProgression.Tooltips.Learn");
-            var reset = Language.GetTextValue("Mods.MordhauProgression.Tooltips.Reset");
-            var cur = Language.GetTextValue("Mods.MordhauProgression.Tooltips.Current");
-
-            var effect = Language.GetTextValue($"Mods.MordhauProgression.Traits.{data.role}.{id.subRole}.{data.index}.T{Math.Max(Tier, 1)}");
-            if (Tier != 0)
-            {
-                effect = $"{cur}\n{effect}";
-            }
-
-            var open = Tier == 2 ? reset : learn + "\n" + reset;
-            if (!Open)
-                open = string.Format(Language.GetTextValue("Mods.MordhauProgression.Tooltips.Required"), Language.GetTextValue($"Mods.MordhauProgression.Traits.{data.role}.{id.subRole}.{data.index - 1}.Name"));
-
-
-            var text = $"{id.name}\n{effect}\n\n{open}";
-            var scale = 1 + 12f / 66f;
-
-            var texture = Textures.Window.Value;
-            var font = FontAssets.MouseText.Value;
-
-            var textSize = ChatManager.GetStringSize(font, text, new Vector2(1f), 160);
-            var textOffset = new Vector2(15);
-
-            text = text.Replace(id.name, "");
-            text = text.Replace(cur, "");
-
-            var color = Color.DarkSlateGray;
-            color *= (scale - 0.7f);
-
-            var desiredSize = textOffset * 2 + textSize;
-
-            var sb = Main.spriteBatch;
-
-
             UIPlayer.CurrentTooltipUI = () =>
             {
+                var learn = Language.GetTextValue("Mods.MordhauProgression.Tooltips.Learn");
+                var reset = Language.GetTextValue("Mods.MordhauProgression.Tooltips.Reset");
+
+                var effect = Language.GetTextValue($"Mods.MordhauProgression.Traits.{data.role}.{id.subRole}.{data.index}.T{Math.Max(Tier, 1)}");
+
+                var f = effect.FirstOrDefault(e => char.IsNumber(e), ' ');
+                var l = char.IsNumber(effect[effect.IndexOf(f) + 1]) ? effect[effect.IndexOf(f) + 1] : effect[effect.IndexOf(f)];
+                var number = f == ' ' ? "1" : effect[effect.IndexOf(f)..(effect.IndexOf(l) + 1)];
+                var bonus = string.Format(Language.GetTextValue("Mods.MordhauProgression.Tooltips.T2Bonus"), number);
+                if (effect.Contains('%'))
+                    bonus = bonus[..bonus.IndexOf(' ')] + '%' + bonus[bonus.IndexOf(' ')..];
+                var chance = string.Format(Language.GetTextValue("Mods.MordhauProgression.Tooltips.T2Chance"), number + "%");
+
+                var next = effect.Contains(chance) ? chance : bonus;
+
+                if (Tier != 0)
+                {
+                    if (Tier != 1)
+                        next = "";
+                    else
+                        next = "\n" + next;
+
+                    effect = $"{effect}{next}";
+                }
+
+                var open = Tier == 2 ? reset : learn + "\n" + reset;
+                if (!Open)
+                    open = string.Format(Language.GetTextValue("Mods.MordhauProgression.Tooltips.Required"), Language.GetTextValue($"Mods.MordhauProgression.Traits.{data.role}.{id.subRole}.{data.index - 1}.Name"));
+
+
+                var scale = 1 + 12f / 66f;
+
+                var texture = Textures.Window.Value;
+                var font = FontAssets.MouseText.Value;
+
+
+                var sb = Main.spriteBatch;
+
+
+                var text = $"{id.name}\n{effect}\n\n{open}";
+
+                var textSize = ChatManager.GetStringSize(font, text, new Vector2(1f), 160);
+                var textOffset = new Vector2(15);
+
+                text = text.Replace(id.name, "");
+
+
+                var desiredSize = textOffset * 2 + textSize;
+
+                var color = Color.DarkSlateGray;
+                color *= (scale - 0.7f);
+
                 var WindowScale = desiredSize / texture.Size();
 
                 scale = 1 + 12f / 66f;
@@ -290,51 +308,30 @@ public class TraitButtonUIElement : UIElement
 
                 sb.Draw(texture, pos, null, color, 0, Vector2.Zero, WindowScale, SpriteEffects.None, 0);
 
-                color = Color.WhiteSmoke;
-                color *= scale - 0.8f;
-
-                if (Tier != 0)
-                ChatManager.DrawColorCodedString(sb, font, "\n" + cur, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
-
 
                 color = Tier == 3 ? Color.Plum : Tier == 2 ? Color.Khaki.MultiplyRGB(Color.Khaki) : Tier == 1 ? Color.AntiqueWhite : Color.WhiteSmoke;
                 color *= scale - 0.4f;
 
                 ChatManager.DrawColorCodedString(sb, font, id.name, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
 
+                if (Tier == 1)
+                {
+                    while (ChatManager.GetStringSize(font, next, new Vector2(1f), 160).Y <= ChatManager.GetStringSize(font, text[..text.LastIndexOf(next.Replace("\n", ""))], new Vector2(1f), 160).Y)
+                    {
+                        next = "\n" + next;
+                    }
+
+                    color = Tier == 2 ? Color.Plum : Tier == 1 ? Color.Khaki.MultiplyRGB(Color.Khaki) : Color.AntiqueWhite;
+
+                    ChatManager.DrawColorCodedString(sb, font, next, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
+                    text = text[..text.LastIndexOf(next.Replace("\n", ""))] + text[(text.LastIndexOf(next.Replace("\n", "")) + next.Replace("\n", "").Length)..];
+                }
+
 
                 color = Color.WhiteSmoke;
                 color *= scale - 0.4f;
 
                 ChatManager.DrawColorCodedString(sb, font, text, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
-
-                if (Tier == 1)
-                {
-                    var name = Language.GetTextValue($"Mods.MordhauProgression.Traits.{data.role}.{id.subRole}.{data.index}.Name");
-                    text = name + "\n" + Language.GetTextValue($"Mods.MordhauProgression.Traits.{data.role}.{id.subRole}.{data.index}.T{Tier + 1}");
-                    textSize = ChatManager.GetStringSize(font, text, new Vector2(1f), 140);
-                    text = text.Replace(name, "");
-                    desiredSize = textOffset * 2 + textSize;
-                    WindowScale = desiredSize / texture.Size();
-
-                    pos = new Vector2(Left.Pixels - desiredSize.X - (scale - 1) * Width.Pixels / 2, Top.Pixels - (scale - 1) * Height.Pixels / 2);
-
-                    color = Color.DarkSlateGray;
-                    color *= scale - 0.7f;
-
-                    sb.Draw(texture, pos, null, color, 0, Vector2.Zero, WindowScale, SpriteEffects.None, 0);
-
-
-                    color = Tier == 2 ? Color.Plum : Tier == 1 ? Color.Khaki.MultiplyRGB(Color.Khaki) : Tier == 0 ? Color.AntiqueWhite : Color.WhiteSmoke;
-                    color *= scale - 0.5f;
-
-                    ChatManager.DrawColorCodedString(sb, font, name, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
-
-                    color = Color.WhiteSmoke;
-                    color *= scale - 0.5f;
-
-                    ChatManager.DrawColorCodedString(sb, font, text, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
-                }
             };
         }
     }
