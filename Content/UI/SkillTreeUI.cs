@@ -269,10 +269,10 @@ public class TraitButtonUIElement : UIElement
             var font = FontAssets.MouseText.Value;
 
             var textSize = ChatManager.GetStringSize(font, text, new Vector2(1f), 160);
-            var textOffset = new Vector2(10);
+            var textOffset = new Vector2(15);
 
             var color = Color.DarkSlateGray;
-            color *= (scale - 0.8f);
+            color *= (scale - 0.7f);
 
             var desiredSize = textOffset * 2 + textSize;
 
@@ -285,7 +285,7 @@ public class TraitButtonUIElement : UIElement
 
                 scale = 1 + 12f / 66f;
 
-                var pos = TooltipUIElement.position;
+                var pos = Main.MouseScreen;
 
                 sb.Draw(texture, pos, null, color, 0, Vector2.Zero, WindowScale, SpriteEffects.None, 0);
 
@@ -356,7 +356,7 @@ public class TraitButtonUIState : UIState
 {
     public override void OnInitialize()
     {
-        var screenHalved = new Vector2(Main.instance.GraphicsDevice.Viewport.Width / 2, Main.instance.GraphicsDevice.Viewport.Height / 2 - 40 - 90);
+        var screenHalved = new Vector2(Main.instance.GraphicsDevice.Viewport.Width / 2, Main.instance.GraphicsDevice.Viewport.Height / 2 - 40 - 100);
 
         for (int x = 0; x < 8; x++)
         {
@@ -365,7 +365,7 @@ public class TraitButtonUIState : UIState
                 TraitButtonUIElement button = new();
                 button.SetPadding(0);
 
-                var pos = new Vector2(x * 110 - 20 * (x % 2) - 375 - 33, y * 90);
+                var pos = new Vector2(x * 140 - 10 * (x % 2) - 33 - 485, y * 100);
                 pos += screenHalved;
 
                 button.Left.Set(pos.X, 0f);

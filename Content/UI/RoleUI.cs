@@ -85,7 +85,7 @@ public class RoleUIElement : UIElement
         spriteBatch.End();
         spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, Main.Rasterizer);
 
-        var center = new Vector2(Left.Pixels + Width.Pixels / 2, Top.Pixels + Height.Pixels / 2);
+        var center = new Vector2(Left.Pixels + Width.Pixels / 2, Top.Pixels + Height.Pixels / 2 - 10);
 
         spriteBatch.Draw(texture, center, rect, Color.White with { A = 0 }, 0, origin, scale, SpriteEffects.None, 0);
 
@@ -100,9 +100,9 @@ public class RoleUIElement : UIElement
         var level = UIPlayer.SubRoleLevel[index.row].level;
         if (level != 0)
         {
-            var cutRect = rect with { Height = (int)(rect.Height * (level / 8f)) };
+            var cutRect = rect with { Height = (int)(rect.Height * (level / 8f)), Y = (int)(rect.Height - rect.Height * (level / 8f)) };
 
-            spriteBatch.Draw(texture, center, cutRect, Color.Gold with { A = 50 }, 0, origin, scale, SpriteEffects.None, 0);
+            spriteBatch.Draw(texture, center + new Vector2(0, rect.Height - rect.Height * (level / 8f)), cutRect, Color.Gold with { A = 50 }, 0, origin, scale, SpriteEffects.None, 0);
         }
 
 
@@ -112,12 +112,18 @@ public class RoleUIElement : UIElement
         var text = Language.GetTextValue($"Mods.MordhauProgression.Traits.{index.role}.{index.name}.Name");
         var textSize = ChatManager.GetStringSize(font, text, Scale);
 
-        var color = Color.White;
+        var color = Color.Khaki.MultiplyRGB(Color.Khaki * 2) * (level / 8f);
         color *= RoleUISystem.HoveredRow == index.row ? 0.5f : 0.25f;
 
         center += new Vector2(-textSize.X / 2, Height.Pixels / 2);
 
-        ChatManager.DrawColorCodedString(spriteBatch, font, text, center - new Vector2(0, Height.Pixels * 1.33f * ((index.row + 1) % 2) + 4), color, 0, Vector2.Zero, Scale, 160);
+        ChatManager.DrawColorCodedString(spriteBatch, font, text, center - new Vector2(0, 0), color with { A = 0 }, 0, Vector2.Zero, Scale, 160);
+
+        color = Color.White;
+        color *= RoleUISystem.HoveredRow == index.row ? 0.5f : 0.25f;
+        color *= 1 - (level / 8f);
+
+        ChatManager.DrawColorCodedString(spriteBatch, font, text, center - new Vector2(0, 0), color with { A = 0 }, 0, Vector2.Zero, Scale, 160);
 
 
         if (index.row % 2 == 0)
@@ -132,7 +138,7 @@ public class RoleUIElement : UIElement
         color = Color.White;
         color *= 0.33f;
 
-        center += new Vector2(-textSize.X / 2 - 45, -1.33f * Height.Pixels);
+        center += new Vector2(-textSize.X / 2 - 60, -Height.Pixels - 10);
 
         ChatManager.DrawColorCodedString(spriteBatch, font, text, center, color, 0, Vector2.Zero, Scale, 160);
     }

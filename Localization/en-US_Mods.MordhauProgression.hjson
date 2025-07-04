@@ -4,7 +4,7 @@ Tooltips: {
 	T2Chance: 2x chance
 	T2Bonus: 2x bonuses
 	Required: "{0} required to learn"
-	Current: Current
+	Current: "(Current)"
 }
 
 Armor: {

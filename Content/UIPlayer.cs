@@ -38,9 +38,11 @@ public class UIPlayer : ModPlayer
         {
             SkillTree.Clear();
             Armor.Clear();
+            CurrentTooltipUI = null;
             ModContent.GetInstance<TraitButtonUISystem>()?.Hide();
             ModContent.GetInstance<ArmorUISystem>()?.Hide();
             ModContent.GetInstance<RoleUISystem>()?.Hide();
+            ModContent.GetInstance<TooltipUISystem>()?.Hide();
         }
         else
         {

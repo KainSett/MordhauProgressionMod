@@ -76,7 +76,7 @@ public class TooltipUISystem : ModSystem
 
         }, InterfaceScaleType.None);
 
-        layers.Insert(index + 3, l);
+        layers.Insert(index + 5, l);
 
         HideResourceBarsSystem.UILayers = layers;
     }
@@ -84,8 +84,6 @@ public class TooltipUISystem : ModSystem
 
 public class TooltipUIElement : UIElement
 {
-    public static Vector2 position = new();
-
     public override void Draw(SpriteBatch spriteBatch)
     {
         ModContent.GetInstance<TooltipUISystem>()?.Draw?.Invoke();
@@ -101,13 +99,13 @@ public class TooltipUIState : UIState
 {
     public override void OnInitialize()
     {
-        TooltipUIElement.position = new Vector2(Main.instance.GraphicsDevice.Viewport.Width / 2 - 600, Main.instance.GraphicsDevice.Viewport.Height / 2 - 40 - 250);
+        var position = new Vector2(Main.instance.GraphicsDevice.Viewport.Width / 2 - 600, Main.instance.GraphicsDevice.Viewport.Height / 2 - 40 - 250);
 
         TooltipUIElement element = new();
         element.SetPadding(0);
 
-        element.Left.Set(TooltipUIElement.position.X, 0f);
-        element.Top.Set(TooltipUIElement.position.Y, 0f);
+        element.Left.Set(position.X, 0f);
+        element.Top.Set(position.Y, 0f);
 
         element.Width.Set(160, 0);
         element.Height.Set(160, 0);

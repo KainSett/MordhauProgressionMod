@@ -76,7 +76,7 @@ public class ArmorUISystem : ModSystem
 
         }, InterfaceScaleType.None);
 
-        layers.Insert(index + 3, l);
+        layers.Insert(index + 2, l);
 
         HideResourceBarsSystem.UILayers = layers;
     }
@@ -180,22 +180,24 @@ public class ArmorUIElement : UIElement
         {
             var learn = Language.GetTextValue("Mods.MordhauProgression.Tooltips.Learn");
             var reset = Language.GetTextValue("Mods.MordhauProgression.Tooltips.Reset");
+            var cur = "\n" + Language.GetTextValue("Mods.MordhauProgression.Tooltips.Current");
             var effect = Language.GetTextValue($"Mods.MordhauProgression.Armor.T{Math.Min(Tier, 3)}.Effect");
             var name = Language.GetTextValue($"Mods.MordhauProgression.Armor.T{Math.Min(Tier, 3)}.Prefix") + " " + Language.GetTextValue($"Mods.MordhauProgression.Armor.{type}");
 
             var open = Tier == 3 ? reset : learn + "\n" + reset;
-            var text = $"{name}\n{effect}\n\n{open}";
+            var text = $"{name}{cur}\n{effect}\n\n{open}";
             var scale = 1 + 12f / 66f;
 
             var color = Color.DarkSlateGray;
-            color *= scale - 0.8f;
+            color *= scale - 0.7f;
 
             var texture = Textures.Window.Value;
             var font = FontAssets.MouseText.Value;
 
             var textSize = ChatManager.GetStringSize(font, text, new Vector2(1f), 160);
-            var textOffset = new Vector2(10);
+            var textOffset = new Vector2(15);
             text = text.Replace(name, "");
+            text = text.Replace(cur, "\n");
 
             var desiredSize = textOffset * 2 + textSize;
 
@@ -209,9 +211,14 @@ public class ArmorUIElement : UIElement
 
                 scale = 1 + 12f / 66f;
 
-                var pos = TooltipUIElement.position;
+                var pos = Main.MouseScreen;
 
                 sb.Draw(texture, pos, null, color, 0, Vector2.Zero, WindowScale, SpriteEffects.None, 0);
+
+                color = Color.WhiteSmoke;
+                color *= scale - 0.8f;
+
+                ChatManager.DrawColorCodedString(sb, font, cur, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
 
 
                 color = Tier == 3 ? Color.Plum : Tier == 2 ? Color.Khaki.MultiplyRGB(Color.Khaki) : Tier == 1 ? Color.AntiqueWhite : Color.WhiteSmoke;
@@ -227,7 +234,6 @@ public class ArmorUIElement : UIElement
 
                 if (Tier != 3)
                 {
-                    pos += new Vector2(0, desiredSize.Y + 10);
 
                     name = Language.GetTextValue($"Mods.MordhauProgression.Armor.T{Tier + 1}.Prefix") + " " + Language.GetTextValue($"Mods.MordhauProgression.Armor.{type}");
                     text = name + "\n" + Language.GetTextValue($"Mods.MordhauProgression.Armor.T{Tier + 1}.Effect");
@@ -236,9 +242,10 @@ public class ArmorUIElement : UIElement
                     desiredSize = textOffset * 2 + textSize;
                     WindowScale = desiredSize / texture.Size();
 
+                    pos = new Vector2(Left.Pixels-desiredSize.X - (scale - 1) * Width.Pixels / 2, Top.Pixels - (scale - 1) * Height.Pixels / 2);
 
                     color = Color.DarkSlateGray;
-                    color *= scale - 0.8f;
+                    color *= scale - 0.7f;
 
                     sb.Draw(texture, pos, null, color, 0, Vector2.Zero, WindowScale, SpriteEffects.None, 0);
 
@@ -262,14 +269,14 @@ public class ArmorUIState : UIState
 {
     public override void OnInitialize()
     {
-        var pos = new Vector2(Main.instance.GraphicsDevice.Viewport.Width / 1.33f, Main.instance.GraphicsDevice.Viewport.Height / 2 - 40 - 135);
+        var pos = new Vector2(Main.instance.GraphicsDevice.Viewport.Width / 1.2f, Main.instance.GraphicsDevice.Viewport.Height / 2 - 40 - 150);
 
         for (int y = 0; y < 3; y++)
         {
             ArmorUIElement button = new();
             button.SetPadding(0);
 
-            pos += new Vector2(0, 90);
+            pos += new Vector2(0, 100);
 
             button.Left.Set(pos.X, 0f);
             button.Top.Set(pos.Y, 0f);
