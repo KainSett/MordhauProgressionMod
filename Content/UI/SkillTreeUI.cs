@@ -528,7 +528,7 @@ public class TraitButtonUIState : UIState
                     var index = y;
                     var role = TraitButtonUIElement.GetRole(row);
 
-                    var tier = player.TraitTiersData.Count == 0 ? [0, 0, 0] : player.TraitTiersData[TraitButtonUIElement.GetName(role, x, y)];
+                    var tier = player.TraitTiersData.Count == 0 || player.TraitTiersData.First().Value.Count == 0 ? [0, 0, 0] : player.TraitTiersData[TraitButtonUIElement.GetName(role, x, y)];
 
                     for (int a = 0; a < 3; a++)
                         player.SkillTree[a].Add((role, row, index, tier[a], false, 0));

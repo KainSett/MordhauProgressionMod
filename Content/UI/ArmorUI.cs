@@ -337,7 +337,7 @@ public class ArmorUIState : UIState
         {
             player.loadouts.Clear();
             for (int i = 0; i < 3; i++) {
-                var tier = player.ArmorTiersData.Count == 0 ? [0, 0, 0] : player.ArmorTiersData[i];
+                var tier = player.ArmorTiersData.Count == 0 || player.ArmorTiersData[0].Count == 0 ? [0, 0, 0] : player.ArmorTiersData[i];
 
                 player.loadouts.Add(i, [(0, tier[0]), (1, tier[1]), (2, tier[2])]);
             } 

@@ -25,14 +25,14 @@ public class UIPlayer : ModPlayer
         {
             for (int y = 0; y < 4; y++)
             {
-                var value = traits is null ? [0, 0, 0] : traits[x * 4 + y];
+                var value = traits is null || traits.Count == 0 ? [0, 0, 0] : traits[x * 4 + y];
                 TraitTiersData.Add(TraitButtonUIElement.GetName(TraitButtonUIElement.GetRole(x), x, y), value);
             }
         }
 
         for (int i = 0; i < 3; i++)
         {
-            var value = armor is null ? [0, 0, 0] : armor[i];
+            var value = armor is null || armor.Count == 0 ? [0, 0, 0] : armor[i];
             ArmorTiersData.Add(i, value);
         }
     }
@@ -61,15 +61,9 @@ public class UIPlayer : ModPlayer
         if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var player))
         {
             List<List<int>> tree = [];
-            foreach (var trait in player.SkillTree)
+            for (int i = 0; i < player.SkillTree.First().Value.Count; i++)
             {
-                List<int> values = [];
-                foreach (var value in trait.Value)
-                {
-                    values.Add(value.tier);
-                }
-
-                tree.Add(values);
+                tree.Add([player.SkillTree[0][i].tier, player.SkillTree[1][i].tier, player.SkillTree[2][i].tier]);
             }
 
             List<List<int>> loadout = [];
