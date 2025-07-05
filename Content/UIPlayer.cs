@@ -18,9 +18,10 @@ public class UIPlayer : ModPlayer
 
     public static List<(int row, int level)> SubRoleLevel = [];
 
-    public HashSet<ArmorUIElement> Armor = [];
+    public List<HashSet<ArmorUIElement>> Armor = [];
 
     public static Action CurrentTooltipUI = new(() => { });
+
 
     public override void ResetEffects()
     {
@@ -43,6 +44,7 @@ public class UIPlayer : ModPlayer
             ModContent.GetInstance<RoleUISystem>()?.Hide();
             ModContent.GetInstance<TooltipUISystem>()?.Hide();
             ModContent.GetInstance<PointUISystem>()?.Show();
+            ModContent.GetInstance<ArmorCoinUISystem>()?.Show();
         }
         else
         {
@@ -55,7 +57,6 @@ public class UIPlayer : ModPlayer
             CurrentTooltipUI = null;
             ModContent.GetInstance<PointUISystem>()?.Hide();
         }
-
 
         if (SkillTree?.Count == 0)
             return;

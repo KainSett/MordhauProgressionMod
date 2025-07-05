@@ -20,6 +20,8 @@ public static class Textures
 
     public static readonly Asset<Texture2D> Roles = LoadTexture2D("UI/Roles");
 
+    public static readonly Asset<Texture2D> Point = LoadTexture2D("UI/GoldenPoint");
+
     private static Asset<Texture2D> LoadTexture2D(string TexturePath)
     {
         if (Main.dedServ)

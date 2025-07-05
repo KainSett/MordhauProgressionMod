@@ -42,7 +42,7 @@ public class TooltipUISystem : ModSystem
 
     public override void Load()
     {
-        HideResourceBarsSystem.NameList.Add(LayerName);
+        UIDetoursSystem.NameList.Add(LayerName);
 
         state = new TooltipUIState();
         Interface = new UserInterface();
@@ -78,7 +78,7 @@ public class TooltipUISystem : ModSystem
 
         layers.Insert(index + 5, l);
 
-        HideResourceBarsSystem.UILayers = layers;
+        UIDetoursSystem.UILayers = layers;
     }
 }
 

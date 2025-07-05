@@ -16,7 +16,7 @@ public class PointUISystem : ModSystem
 {
     internal PointUIState state;
     private UserInterface Interface;
-    public static List<Vector2> Position = [];
+    public static Vector2 Position = new();
 
     public void Show()
     {
@@ -33,21 +33,6 @@ public class PointUISystem : ModSystem
         state = new PointUIState();
         Interface = new UserInterface();
         state.Activate();
-
-        On_ItemSlot.Draw_SpriteBatch_ItemArray_int_int_Vector2_Color += On_ItemSlot_Draw_SpriteBatch_ItemArray_int_int_Vector2_Color;
-    }
-
-    private void On_ItemSlot_Draw_SpriteBatch_ItemArray_int_int_Vector2_Color(On_ItemSlot.orig_Draw_SpriteBatch_ItemArray_int_int_Vector2_Color orig, SpriteBatch spriteBatch, Item[] inv, int context, int slot, Vector2 position, Color lightColor)
-    {
-        if (inv == Main.LocalPlayer.armor && slot < 3)
-        {
-            if (slot == 0)
-                Position.Clear();
-
-
-            Position.Add(position * Main.UIScale);
-        }
-        orig(spriteBatch, inv, context, slot, position, lightColor);
     }
 
     public bool IsActive()
@@ -84,11 +69,8 @@ public class PointUIElement : UIElement
 {
     public override void Draw(SpriteBatch spriteBatch)
     {
-        if (PointUISystem.Position.Count <= type || PointUISystem.Position[type] == Vector2.Zero)
-            return;
-
-        Texture2D texture = Textures.Coins.Value;
-        var rect = texture.Frame(4, 3, frame.row, frame.index, -1, -1);
+        Texture2D texture = Textures.Point.Value;
+        var rect = texture.Frame(1, 4, 0, frame.index, -1, -1);
 
         Vector2 origin = rect.Size() * 0.5f;
 
@@ -105,51 +87,32 @@ public class PointUIElement : UIElement
     }
 
     #region Fields
-    public (int row, int index, bool second) frame = (0, 1, false);
+    public (int index, bool second) frame = (0, false);
 
     private int timer = 0;
-
-    public int type = 0;
     #endregion
 
     public override void Update(GameTime gameTime)
     {
-        if (PointUISystem.Position.Count <= type || PointUISystem.Position[type] == Vector2.Zero)
-            return;
-
-        Left.Set(PointUISystem.Position[type].X + 40 * Main.UIScale - Width.Pixels / 2, 0);
-        Top.Set(PointUISystem.Position[type].Y + 2 * Main.UIScale - Height.Pixels / 2, 0);
-        PointUISystem.Position[type] = Vector2.Zero;
-
-
         if (ContainsPoint(Main.MouseScreen * Main.UIScale))
         {
             Main.LocalPlayer.mouseInterface = true;
 
-            timer = (timer + 1) % 6;
-            if (timer % 6 != 0)
+            timer = (timer + 1) % 5;
+            if (timer % 5 != 0)
                 return;
 
-            if (frame.index == 2)
-            {
-
+            if (frame.index == 3)
                 frame.second = false;
-            }
+            
             else if (frame.index == 0)
-            {
                 frame.second = true;
-            }
+            
 
             frame.index += frame.second ? 1 : -1;
         }
         else
-            frame = (0, 0, false);
-
-        if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var p))
-        {
-            if (p.Armor.Any(e => e.type == type))
-                frame.row = p.Armor.First(e => e.type == type).Tier;
-        }
+            frame = (0, false);
     }
 }
 
@@ -157,26 +120,22 @@ public class PointUIState : UIState
 {
     public override void OnInitialize()
     {
-        var pos = new Vector2(Main.instance.GraphicsDevice.Viewport.Width / 1.2f, Main.instance.GraphicsDevice.Viewport.Height / 2 - 40 - 300);
+        var pos = new Vector2(Main.instance.GraphicsDevice.Viewport.Width / 2f, Main.instance.GraphicsDevice.Viewport.Height / 1.2f);
 
-        for (int i = 0; i < 3; i++)
-        {
-            PointUIElement element = new();
+        PointUIElement element = new();
 
-            element.Left.Set(pos.X, 0f);
-            element.Top.Set(pos.Y, 0f);
+        element.Left.Set(pos.X - 16, 0f);
+        element.Top.Set(pos.Y - 16, 0f);
 
-            element.Width.Set(20, 0);
-            element.Height.Set(20, 0);
-            element.MinWidth.Set(20, 0);
-            element.MaxWidth.Set(20, 0);
-            element.MaxHeight.Set(20, 0);
-            element.MinHeight.Set(20, 0);
+        element.Width.Set(32, 0);
+        element.Height.Set(32, 0);
+        element.MinWidth.Set(16, 0);
+        element.MaxWidth.Set(64, 0);
+        element.MaxHeight.Set(64, 0);
+        element.MinHeight.Set(16, 0);
 
-            element.type = i;
 
-            Append(element);
-            element.Activate();
-        }
+        Append(element);
+        element.Activate();
     }
 }

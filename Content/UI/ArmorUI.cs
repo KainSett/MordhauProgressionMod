@@ -10,7 +10,7 @@ using Terraria.ModLoader;
 using Terraria.UI.Chat;
 using Terraria.UI;
 using Terraria;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Linq;
 
 namespace MordhauProgression.Content.UI;
 [Autoload(Side = ModSide.Client)]
@@ -28,10 +28,11 @@ public class ArmorUISystem : ModSystem
         if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var p))
         {
             p.Armor?.Clear();
+            p.Armor = [[], [], []];
 
             foreach (var part in ArmorRegistry)
             {
-                p.Armor?.Add(part);
+                p.Armor?[Main.LocalPlayer.CurrentLoadoutIndex].Add(part);
             }
         }
     }
@@ -43,7 +44,7 @@ public class ArmorUISystem : ModSystem
 
     public override void Load()
     {
-        HideResourceBarsSystem.NameList.Add(LayerName);
+        UIDetoursSystem.NameList.Add(LayerName);
 
         state = new ArmorUIState();
         Interface = new UserInterface();
@@ -79,7 +80,40 @@ public class ArmorUISystem : ModSystem
 
         layers.Insert(index + 2, l);
 
-        HideResourceBarsSystem.UILayers = layers;
+        UIDetoursSystem.UILayers = layers;
+    }
+}
+
+public class ArmorUIItem : GlobalItem
+{
+    public override bool InstancePerEntity => true;
+
+    public override void ModifyTooltips(Item item, List<TooltipLine> tooltips)
+    {
+        if (!item.wornArmor)
+            return;
+
+
+        var type = -1;
+
+        if (item.headSlot != -1) type = 0;
+        else if (item.bodySlot != -1) type = 1;
+        else if (item.legSlot != -1) type = 2;
+
+        if (type == -1)
+            return;
+
+        var prefix = "";
+        if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var p))
+        {
+            var loadout = p.Armor[Main.LocalPlayer.CurrentLoadoutIndex];
+            if (loadout.Any(e => e.type == type))
+                prefix = Language.GetTextValue($"Mods.MordhauProgression.Armor.T{Math.Min(loadout.First(e => e.type == type).Tier, 3)}.Prefix") + " ";
+        }
+
+        var tooltip = tooltips.Find(t => t.Name == "ItemName");
+        if (tooltip is not null)
+            tooltip.Text = prefix + tooltip.Text;
     }
 }
 
@@ -124,6 +158,8 @@ public class ArmorUIElement : UIElement
     public float Scale = 1f;
 
     public float Flash = 0;
+
+    public int index = 0;
     #endregion
 
     #region Events
@@ -146,6 +182,16 @@ public class ArmorUIElement : UIElement
             Flash = -1f;
 
         Tier = 0;
+    }
+
+    public static void SetArmorTier(int type, int tier)
+    {
+        if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var p))
+        {
+            var loadout = p.Armor[Main.LocalPlayer.CurrentLoadoutIndex];
+            if (loadout.Any(e => e.type == type))
+                loadout.First(e => e.type == type).Tier = tier;
+        }
     }
 
     private void OnLeftInteract()
@@ -272,32 +318,36 @@ public class ArmorUIState : UIState
     {
         var pos = new Vector2(Main.instance.GraphicsDevice.Viewport.Width / 1.2f, Main.instance.GraphicsDevice.Viewport.Height / 2 - 40 - 150);
 
-        for (int y = 0; y < 3; y++)
+        for (int i = 0; i < 3; i++)
         {
-            ArmorUIElement button = new();
-            button.SetPadding(0);
+            for (int y = 0; y < 3; y++)
+            {
+                ArmorUIElement button = new();
+                button.SetPadding(0);
 
-            pos += new Vector2(0, 100);
+                pos += new Vector2(0, 100);
 
-            button.Left.Set(pos.X, 0f);
-            button.Top.Set(pos.Y, 0f);
+                button.Left.Set(pos.X, 0f);
+                button.Top.Set(pos.Y, 0f);
 
-            button.Width.Set(66, 0);
-            button.Height.Set(66, 0);
-            button.MinWidth.Set(66, 0);
-            button.MaxWidth.Set(66, 0);
-            button.MaxHeight.Set(66, 0);
-            button.MinHeight.Set(66, 0);
+                button.Width.Set(66, 0);
+                button.Height.Set(66, 0);
+                button.MinWidth.Set(66, 0);
+                button.MaxWidth.Set(66, 0);
+                button.MaxHeight.Set(66, 0);
+                button.MinHeight.Set(66, 0);
 
-            button.type = y;
-            button.Tier = 0;
+                button.type = y;
+                button.Tier = 0;
+                button.index = i;
 
-            Append(button);
+                Append(button);
 
 
-            ArmorUISystem.ArmorRegistry.Add(button);
+                ArmorUISystem.ArmorRegistry.Add(button);
 
-            button.Activate();
+                button.Activate();
+            }
         }
     }
 }

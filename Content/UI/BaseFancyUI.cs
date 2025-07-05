@@ -58,44 +58,27 @@ public abstract class BaseFancyUI : UIState
     }
 }
 
-// stole (with permission) from https://github.com/ZenTheMod/WizenkleBoss/blob/dev/Common/ILDetourSystems/HideResourceBarsSystem.cs
-// modified to fit my usecase
-public class HideResourceBarsSystem : ModSystem
+// stole the GUIBarsDrawInner detour (with permission) from https://github.com/ZenTheMod/WizenkleBoss/blob/dev/Common/ILDetourSystems/HideResourceBarsSystem.cs
+public class UIDetoursSystem : ModSystem
 {
     public override void Load()
     {
         On_Main.GUIBarsDrawInner += StopBarsInFancyUI;
         On_PlayerInput.SetZoom_UI += On_PlayerInput_SetZoom_UI;
-        On_UIElement.Recalculate += UnZoomForMyUI;
-        On_UIElement.Update += UnZoomForUpdate;
-    }
-
-    private void UnZoomForUpdate(On_UIElement.orig_Update orig, UIElement self, GameTime gameTime)
-    {
-        var cond = self.Parent is PointUIState;
-        if (cond)
-        {
-            var oldScale = Main.UIScale;
-            Main.UIScale = 1f;
-
-            orig(self, gameTime);
-
-            Main.UIScale = oldScale;
-        }
-        else orig(self, gameTime);
+        On_UIElement.Recalculate += UnZoomPositionForMyUI;
     }
 
     public override void Unload()
     {
         On_Main.GUIBarsDrawInner -= StopBarsInFancyUI;
         On_PlayerInput.SetZoom_UI -= On_PlayerInput_SetZoom_UI;
-        On_UIElement.Recalculate -= UnZoomForMyUI;
-        On_UIElement.Update -= UnZoomForUpdate;
+        On_UIElement.Recalculate -= UnZoomPositionForMyUI;
     }
 
-    private void UnZoomForMyUI(On_UIElement.orig_Recalculate orig, UIElement self)
+
+    private void UnZoomPositionForMyUI(On_UIElement.orig_Recalculate orig, UIElement self)
     {
-        var cond = self.Parent is PointUIState;
+        var cond = self.Parent is PointUIState or ArmorCoinUIState;
         if (cond)
         {
             var oldScale = Main.UIScale;
@@ -104,6 +87,14 @@ public class HideResourceBarsSystem : ModSystem
             orig(self);
 
             Main.UIScale = oldScale;
+
+            // Only works if min height and min width are exactly half of the default height and width, accordingly
+            var newHeight = Clamp(self.MinHeight.Pixels * 2 * oldScale, self.MinHeight.Pixels, self.MaxHeight.Pixels);
+            var newWidth = Clamp(self.MinWidth.Pixels * 2 * oldScale, self.MinWidth.Pixels, self.MaxWidth.Pixels);
+            self.Top.Set(self.Top.Pixels - (newHeight - self.Height.Pixels) / 2, self.Top.Precent);
+            self.Left.Set(self.Left.Pixels - (newWidth - self.Width.Pixels) / 2, self.Left.Precent);
+            self.Width.Set(newWidth, self.Width.Precent);
+            self.Height.Set(newHeight, self.Height.Precent);
         }
         else orig(self);
     }

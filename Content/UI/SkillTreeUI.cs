@@ -42,7 +42,7 @@ public class TraitButtonUISystem : ModSystem
 
     public override void Load()
     {
-        HideResourceBarsSystem.NameList.Add(LayerName);
+        UIDetoursSystem.NameList.Add(LayerName);
 
         state = new TraitButtonUIState();
         Interface = new UserInterface();
@@ -78,7 +78,7 @@ public class TraitButtonUISystem : ModSystem
 
         layers.Insert(index + 3, l);
 
-        HideResourceBarsSystem.UILayers = layers;
+        UIDetoursSystem.UILayers = layers;
     }
 }
 
@@ -93,12 +93,12 @@ public class TraitButtonUIElement : UIElement
 
         var texture = Textures.Icons.Value;
 
-        var rect = texture.Frame(4, 3, type, Tier, -3, -3);
+        var rect = texture.Frame(32, 3, type, Tier, -1, -1);
         var scale = Scale;
 
         Vector2 origin = rect.Size() * 0.5f;
 
-        spriteBatch.Draw(texture, center, rect, Color.White, 0, origin, scale, SpriteEffects.None, 0);
+        spriteBatch.Draw(texture, center, rect, Color.White, 0, origin, scale * 3, SpriteEffects.None, 0);
 
 
         if (Flash != 0 || !Open)
@@ -370,7 +370,7 @@ public class TraitButtonUIState : UIState
                 button.MaxHeight.Set(66, 0);
                 button.MinHeight.Set(66, 0);
 
-                button.type = y;
+                button.type = y + x * 4;
                 button.Tier = 0;
 
                 Append(button);

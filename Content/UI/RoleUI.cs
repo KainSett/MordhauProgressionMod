@@ -31,7 +31,7 @@ public class RoleUISystem : ModSystem
 
     public override void Load()
     {
-        HideResourceBarsSystem.NameList.Add(LayerName);
+        UIDetoursSystem.NameList.Add(LayerName);
 
         state = new RoleUIState();
         Interface = new UserInterface();
@@ -67,7 +67,7 @@ public class RoleUISystem : ModSystem
 
         layers.Insert(index + 3, l);
 
-        HideResourceBarsSystem.UILayers = layers;
+        UIDetoursSystem.UILayers = layers;
     }
 }
 

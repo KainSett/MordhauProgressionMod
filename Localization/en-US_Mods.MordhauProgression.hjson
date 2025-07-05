@@ -149,15 +149,15 @@ Traits: {
 			Name: Sharpshooter
 
 			0: {
-				Name: Keen Sight
-				T1: +5% ranger crit chance
-				T2: +10% ranger crit chance
+				Name: Scope
+				T1: +5% ranged crit chance
+				T2: +10% ranged crit chance
 			}
 
 			1: {
 				Name: Lucky Shot
-				T1: +7% crit damage
-				T2: +14% crit damage
+				T1: +7% ranged crit damage
+				T2: +14% ranged crit damage
 			}
 
 			2: {
@@ -254,8 +254,8 @@ Traits: {
 
 			2: {
 				Name: Charisma
-				T1: +4 tag dmg
-				T2: +8 tag dmg
+				T1: +4 tag damage
+				T2: +8 tag damage
 			}
 
 			3: {
@@ -281,9 +281,9 @@ Traits: {
 			}
 
 			2: {
-				Name: Kindness
-				T1: Heal a nearby player every 2 seconds when standing still
-				T2: Heal a nearby player every second when standing still
+				Name: Traps
+				T1: Spawn 1 bear trap near your every sentry
+				T2: Spawn 2 bear traps near your every sentry
 			}
 
 			3: {
