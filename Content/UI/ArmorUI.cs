@@ -11,6 +11,7 @@ using Terraria.UI.Chat;
 using Terraria.UI;
 using Terraria;
 using System.Linq;
+using System.Data;
 
 namespace MordhauProgression.Content.UI;
 [Autoload(Side = ModSide.Client)]
@@ -196,6 +197,8 @@ public class ArmorUIElement : UIElement
             {
                 var l = loadout.First(e => e.type == type);
                 loadout[loadout.IndexOf(l)] = (type, tier);
+
+                player.loadouts[Main.LocalPlayer.CurrentLoadoutIndex] = loadout;
             }
         }
     }
@@ -333,8 +336,11 @@ public class ArmorUIState : UIState
         if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var player))
         {
             player.loadouts.Clear();
-            for (int i = 0; i < 3; i++)
-                player.loadouts.Add(i, [(0, 0), (1, 0), (2, 0)]);
+            for (int i = 0; i < 3; i++) {
+                var tier = player.ArmorTiersData.Count == 0 ? [0, 0, 0] : player.ArmorTiersData[i];
+
+                player.loadouts.Add(i, [(0, tier[0]), (1, tier[1]), (2, tier[2])]);
+            } 
         }
 
 

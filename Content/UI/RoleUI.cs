@@ -109,10 +109,9 @@ public class RoleUIElement : UIElement
             {
                 var cutRect = rect with { Height = (int)(rect.Height * (level / 8f)), Y = (int)(rect.Height - rect.Height * (level / 8f)) };
 
-                if (player.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex].Any(e => e.trait.Flash > 0 && e.trait.ActualRow == index.row))
+                if (player.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex].Any(e => e.flash > 0 && e.row == index.row))
                 {
-
-                    color *= 0.5f + player.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex].First(e => e.trait.Flash > 0 && e.trait.ActualRow == index.row).trait.Flash;
+                    color *= 0.5f + player.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex].First(e => e.flash > 0 && e.row == index.row).flash;
                     color.A = 0;
                 }
 
@@ -164,9 +163,9 @@ public class RoleUIElement : UIElement
 
     public override void Update(GameTime gameTime)
     {
-        if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var player))
+        if (ModContent.GetInstance<TraitButtonUISystem>()?.state.Children.Count() > 0)
         {
-            var first = player.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex].FirstOrDefault(t => t.index == 0 && t.trait.id.subRole == index.name).trait;
+            var first = ModContent.GetInstance<TraitButtonUISystem>()?.state.Children.ToList()[index.row * 4];
             if (first == null)
                 return;
 

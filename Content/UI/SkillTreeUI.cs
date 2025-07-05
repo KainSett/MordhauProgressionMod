@@ -96,17 +96,23 @@ public class TraitButtonUIElement : UIElement
 
         spriteBatch.Draw(texture, center, rect, Color.White, 0, origin, scale * 3, SpriteEffects.None, 0);
 
-
-        if (Flash != 0 || !Open)
+        var Flash = 0f;
+        if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var p))
         {
-            texture = TextureAssets.MagicPixel.Value;
+            if (p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex].Count > 0)
+                Flash = p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex].FirstOrDefault(e => e.row == data.row && e.index == data.index).flash;
 
-            var PixelScale = Scale * new Vector2(Width.Pixels, Height.Pixels) / new Vector2(texture.Width, texture.Height);
+            if (Flash != 0 || !Open)
+            {
+                texture = TextureAssets.MagicPixel.Value;
 
-            var color = Flash > 0 ? Color.White : Color.DarkGray;
-            color *= float.Abs(Flash);
+                var PixelScale = Scale * new Vector2(Width.Pixels, Height.Pixels) / new Vector2(texture.Width, texture.Height);
 
-            spriteBatch.Draw(texture, center, null, color with { A = 150 }, 0, texture.Size() * 0.5f, PixelScale, SpriteEffects.None, 0);
+                var color = Flash > 0 ? Color.White : Color.DarkGray;
+                color *= float.Abs(Flash);
+
+                spriteBatch.Draw(texture, center, null, color with { A = 150 }, 0, texture.Size() * 0.5f, PixelScale, SpriteEffects.None, 0);
+            }
         }
     }
 
@@ -115,15 +121,41 @@ public class TraitButtonUIElement : UIElement
 
     public float Scale = 1f;
 
-    public float Flash = 0;
+    public bool Open
+    {
+        get {
+            if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var p))
+            {
+                if (p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex].Count > 0)
+                {
+                    var tree = p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex];
+                    var trait = tree.FirstOrDefault(e => e.row == data.row && e.index == data.index);
+                    return trait.open;
+                }
+                else return false;
+            }
+            else return false;
+        }
+        set {
+            if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var p))
+            {
+                if (p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex].Count > 0)
+                {
+                    var tree = p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex];
+                    var trait = tree.FirstOrDefault(e => e.row == data.row && e.index == data.index);
+                    var index = tree.IndexOf(trait);
 
-    public bool Open = false;
+                    trait.open = value;
+
+                    tree[index] = trait;
+                }
+            }
+        }
+    }
 
     public (string role, int row, int index) data = new();
 
     public (string subRole, string name) id = new();
-
-    public int ActualRow = 0;
     #endregion
 
     #region Events
@@ -143,7 +175,20 @@ public class TraitButtonUIElement : UIElement
     private void OnRightInteract()
     {
         if (GetTraitTier(data.role, data.row, data.index) != 0)
-            Flash = -1f;
+        {
+            if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var p))
+            {
+                if (p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex].Count > 0)
+                {
+                    var tree = p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex];
+                    var trait = tree.FirstOrDefault(e => e.row == data.row && e.index == data.index);
+                    var index = tree.IndexOf(trait);
+                    trait.flash = 1;
+
+                    p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex][index] = trait;
+                }
+            }
+        }
 
         SetTraitTier(data.role, data.row, data.index, 0);
     }
@@ -156,7 +201,20 @@ public class TraitButtonUIElement : UIElement
         var newTier = (int)Clamp(GetTraitTier(data.role, data.row, data.index) + 1, 0, 2);
 
         if (newTier != GetTraitTier(data.role, data.row, data.index))
-            Flash = 1f;
+        {
+            if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var p))
+            {
+                if (p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex].Count > 0)
+                {
+                    var tree = p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex];
+                    var trait = tree.FirstOrDefault(e => e.row == data.row && e.index == data.index);
+                    var index = tree.IndexOf(trait);
+                    trait.flash = -1;
+
+                    p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex][index] = trait;
+                }
+            }
+        }
 
         SetTraitTier(data.role, data.row, data.index, newTier);
     }
@@ -170,7 +228,9 @@ public class TraitButtonUIElement : UIElement
             if (loadout.Any(e => e.role == role && e.row == row && e.index == index))
             {
                 var l = loadout.First(e => e.role == role && e.row == row && e.index == index);
-                loadout[loadout.IndexOf(l)] = (role, row, index, tier, l.trait);
+                loadout[loadout.IndexOf(l)] = (role, row, index, tier, l.open, l.flash);
+
+                player.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex] = loadout;
             }
         }
     }
@@ -192,11 +252,23 @@ public class TraitButtonUIElement : UIElement
 
     public override void Update(GameTime gameTime)
     {
-        if (Flash > 0)
-            Flash = Clamp(Flash - 0.05f, 0, Flash);
+        if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var p))
+        {
+            if (p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex].Count > 0)
+            {
+                var tree = p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex];
+                var trait = tree.FirstOrDefault(e => e.row == data.row && e.index == data.index);
+                var index = tree.IndexOf(trait);
 
-        else if (Flash < 0)
-            Flash = Clamp(Flash + 0.05f, Flash, 0);
+                if (trait.flash > 0)
+                    trait.flash = Clamp(trait.flash - 0.05f, 0, trait.flash);
+
+                else if (trait.flash < 0)
+                    trait.flash = Clamp(trait.flash + 0.05f, trait.flash, 0);
+
+                p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex][index] = trait;
+            }
+        }
 
 
         if (ContainsPoint(Main.MouseScreen))
@@ -209,66 +281,52 @@ public class TraitButtonUIElement : UIElement
 
 
         var sub = "Warrior";
-        var first = data.row == 0;
+        var first = data.row % 2 == 0;
 
         switch (data.role)
         {
             case "Melee":
                 if (!first)
-                {
-                    ActualRow = 1;
                     sub = "Tank";
-                }
+
                 break;
 
             case "Ranger":
                 if (first)
-                {
-                    ActualRow = 2;
                     sub = "Sharpshooter";
-                }
+
                 else
-                {
-                    ActualRow = 3;
                     sub = "Archer";
-                }
+
                 break;
 
             case "Mage":
                 if (first)
-                {
-                    ActualRow = 4;
                     sub = "Sorcerer";
-                }
+
                 else
-                {
-                    ActualRow = 5;
                     sub = "Wizard";
-                }
+
                 break;
 
             default:
                 if (first)
-                {
-                    ActualRow = 6;
                     sub = "Commander";
-                }
+
                 else
-                {
-                    ActualRow = 7;
                     sub = "Defender";
-                }
+
                 break;
         }
 
 
-        id.name = Language.GetTextValue($"Mods.MordhauProgression.Traits.{data.role}.{sub}.{data.index}.Name");
+        id.name = GetName(data.role, data.row, data.index);
         id.subRole = sub;
         var tier = GetTraitTier(data.role, data.row, data.index);
 
         if (Scale != 1)
         {
-            RoleUISystem.HoveredRow = ActualRow;
+            RoleUISystem.HoveredRow = data.row;
             UIPlayer.CurrentTooltipUI = () =>
             {
                 var learn = Language.GetTextValue("Mods.MordhauProgression.Tooltips.Learn");
@@ -359,6 +417,67 @@ public class TraitButtonUIElement : UIElement
         }
     }
 
+    public static string GetRole(int row)
+    {
+        var role = row switch
+        {
+            < 2 => "Melee",
+            < 4 => "Ranger",
+            < 6 => "Mage",
+            _ => "Summoner",
+        };
+
+        return role;
+    }
+
+    public static string GetName(string role, int row, int index)
+    {
+        string name = "";
+
+        var sub = "Warrior";
+        var first = row % 2 == 0;
+
+        switch (role)
+        {
+            case "Melee":
+                if (!first)
+                    sub = "Tank";
+
+                break;
+
+            case "Ranger":
+                if (first)
+                    sub = "Sharpshooter";
+
+                else
+                    sub = "Archer";
+
+                break;
+
+            case "Mage":
+                if (first)
+                    sub = "Sorcerer";
+
+                else
+                    sub = "Wizard";
+
+                break;
+
+            default:
+                if (first)
+                    sub = "Commander";
+
+                else
+                    sub = "Defender";
+
+                break;
+        }
+
+        name = Language.GetTextValue($"Mods.MordhauProgression.Traits.{role}.{sub}.{index}.Name");
+
+        return name;
+    }
+
     public void SetTraitData(string role, int row, int index)
     {
         data.role = role;
@@ -405,18 +524,14 @@ public class TraitButtonUIState : UIState
                     Append(button);
 
 
-                    var row = x % 2;
+                    var row = x;
                     var index = y;
-                    var role = x switch
-                    {
-                        < 2 => "Melee",
-                        < 4 => "Ranger",
-                        < 6 => "Mage",
-                        _ => "Summoner",
-                    };
+                    var role = TraitButtonUIElement.GetRole(row);
+
+                    var tier = player.TraitTiersData.Count == 0 ? [0, 0, 0] : player.TraitTiersData[TraitButtonUIElement.GetName(role, x, y)];
 
                     for (int a = 0; a < 3; a++)
-                        player.SkillTree[a].Add((role, row, index, 0, button));
+                        player.SkillTree[a].Add((role, row, index, tier[a], false, 0));
 
                     button.SetTraitData(role, row, index);
 
