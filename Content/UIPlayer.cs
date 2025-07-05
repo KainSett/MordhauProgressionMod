@@ -44,19 +44,16 @@ public class UIPlayer : ModPlayer
         var t = tag.GetCompound("TraitTiersData");
         var a = tag.GetCompound("ArmorTiersData");
 
-        var tCopy = TraitTiersData;
-        foreach (var name in TraitTiersData)
+        for (int i = 0; i < TraitTiersData.Count; i++)
         {
-            tCopy[name.Key] = [..t.GetList<int>(name.Key)];
+            var name = TraitButtonUIElement.GetName(TraitButtonUIElement.GetRole((int)float.Floor(i / 4f)), (int)float.Floor(i / 4f), i % 4);
+            TraitTiersData[name] = [..t.GetList<int>(name)];
         }
-        TraitTiersData = tCopy;
 
-        var aCopy = ArmorTiersData;
-        foreach (var name in ArmorTiersData)
+        for (int i = 0; i < ArmorTiersData.Count; i++) 
         {
-            aCopy[name.Key] = [..a.GetList<int>($"{name.Key}")];
+            ArmorTiersData[i] = [..a.GetList<int>($"{i}")];
         }
-        ArmorTiersData = aCopy;
     }
 
     public override void SaveData(TagCompound tag)
