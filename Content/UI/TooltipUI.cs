@@ -43,10 +43,13 @@ public class TooltipUISystem : ModSystem
     public override void Load()
     {
         UIDetoursSystem.NameList.Add(LayerName);
+        ReInitialize();
+    }
 
+    public void ReInitialize()
+    {
         state = new TooltipUIState();
         Interface = new UserInterface();
-        state.Activate();
     }
 
 

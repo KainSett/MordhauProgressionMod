@@ -30,9 +30,13 @@ public class PointUISystem : ModSystem
 
     public override void Load()
     {
+        ReInitialize();
+    }
+
+    public void ReInitialize()
+    {
         state = new PointUIState();
         Interface = new UserInterface();
-        state.Activate();
     }
 
     public bool IsActive()
@@ -120,7 +124,7 @@ public class PointUIState : UIState
 {
     public override void OnInitialize()
     {
-        var pos = new Vector2(Main.instance.GraphicsDevice.Viewport.Width / 2f, Main.instance.GraphicsDevice.Viewport.Height / 1.2f);
+        var pos = new Vector2(Main.instance.GraphicsDevice.Viewport.Width / 2f, Main.instance.GraphicsDevice.Viewport.Height / 1.1f);
 
         PointUIElement element = new();
 

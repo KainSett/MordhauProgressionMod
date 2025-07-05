@@ -11,6 +11,8 @@ using System;
 using Terraria.UI.Chat;
 using Terraria.Localization;
 using System.Linq;
+using System.Data;
+using System.Reflection;
 
 namespace MordhauProgression.Content.UI;
 [Autoload(Side = ModSide.Client)]
@@ -19,36 +21,30 @@ public class TraitButtonUISystem : ModSystem
     internal TraitButtonUIState state;
     private UserInterface Interface;
 
-    public static HashSet<(string role, int row, int index, TraitButtonUIElement trait)> TraitRegistry = [];
-
     public void Show()
     {
         Interface?.SetState(state);
 
-        foreach (var trait in TraitRegistry)
-        {
-            if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var p))
-                p.SkillTree?.Add(trait);
-        } 
     }
 
     public void Hide()
     { 
         Interface?.SetState(null); 
         
-        if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var p))
-            p.SkillTree?.Clear();
     }
 
     public override void Load()
     {
         UIDetoursSystem.NameList.Add(LayerName);
+        ReInitialize();
 
-        state = new TraitButtonUIState();
-        Interface = new UserInterface();
-        state.Activate();
     }
 
+    public void ReInitialize()
+    {
+        state = new TraitButtonUIState();
+        Interface = new UserInterface();
+    }
 
     public bool IsActive()
     {
@@ -93,7 +89,7 @@ public class TraitButtonUIElement : UIElement
 
         var texture = Textures.Icons.Value;
 
-        var rect = texture.Frame(32, 3, type, Tier, -1, -1);
+        var rect = texture.Frame(32, 3, type, GetTraitTier(data.role, data.row, data.index), -1, -1);
         var scale = Scale;
 
         Vector2 origin = rect.Size() * 0.5f;
@@ -115,8 +111,6 @@ public class TraitButtonUIElement : UIElement
     }
 
     #region Fields
-    public int Tier = 0;
-
     public int type = 0;
 
     public float Scale = 1f;
@@ -148,10 +142,10 @@ public class TraitButtonUIElement : UIElement
 
     private void OnRightInteract()
     {
-        if (Tier != 0)
+        if (GetTraitTier(data.role, data.row, data.index) != 0)
             Flash = -1f;
 
-        Tier = 0;
+        SetTraitTier(data.role, data.row, data.index, 0);
     }
 
     private void OnLeftInteract()
@@ -159,14 +153,42 @@ public class TraitButtonUIElement : UIElement
         if (!Open)
             return;
 
-        var newTier = (int)Clamp(Tier + 1, 0, 2);
+        var newTier = (int)Clamp(GetTraitTier(data.role, data.row, data.index) + 1, 0, 2);
 
-        if (newTier != Tier)
+        if (newTier != GetTraitTier(data.role, data.row, data.index))
             Flash = 1f;
 
-        Tier = newTier;
+        SetTraitTier(data.role, data.row, data.index, newTier);
     }
     #endregion
+
+    public static void SetTraitTier(string role, int row, int index, int tier)
+    {
+        if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var player))
+        {
+            var loadout = player.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex];
+            if (loadout.Any(e => e.role == role && e.row == row && e.index == index))
+            {
+                var l = loadout.First(e => e.role == role && e.row == row && e.index == index);
+                loadout[loadout.IndexOf(l)] = (role, row, index, tier, l.trait);
+            }
+        }
+    }
+
+    public static int GetTraitTier(string role, int row, int index)
+    {
+        var tier = -1;
+
+        if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var player))
+        {
+            var loadout = player.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex];
+            if (loadout.Any(e => e.role == role && e.row == row && e.index == index))
+                tier = loadout.First(e => e.role == role && e.row == row && e.index == index).tier;
+        }
+
+
+        return tier;
+    }
 
     public override void Update(GameTime gameTime)
     {
@@ -242,6 +264,7 @@ public class TraitButtonUIElement : UIElement
 
         id.name = Language.GetTextValue($"Mods.MordhauProgression.Traits.{data.role}.{sub}.{data.index}.Name");
         id.subRole = sub;
+        var tier = GetTraitTier(data.role, data.row, data.index);
 
         if (Scale != 1)
         {
@@ -251,7 +274,7 @@ public class TraitButtonUIElement : UIElement
                 var learn = Language.GetTextValue("Mods.MordhauProgression.Tooltips.Learn");
                 var reset = Language.GetTextValue("Mods.MordhauProgression.Tooltips.Reset");
 
-                var effect = Language.GetTextValue($"Mods.MordhauProgression.Traits.{data.role}.{id.subRole}.{data.index}.T{Math.Max(Tier, 1)}");
+                var effect = Language.GetTextValue($"Mods.MordhauProgression.Traits.{data.role}.{id.subRole}.{data.index}.T{Math.Max(tier, 1)}");
 
                 var f = effect.FirstOrDefault(e => char.IsNumber(e), ' ');
                 var l = char.IsNumber(effect[effect.IndexOf(f) + 1]) ? effect[effect.IndexOf(f) + 1] : effect[effect.IndexOf(f)];
@@ -263,9 +286,9 @@ public class TraitButtonUIElement : UIElement
 
                 var next = effect.Contains(chance) ? chance : bonus;
 
-                if (Tier != 0)
+                if (tier != 0)
                 {
-                    if (Tier != 1)
+                    if (tier != 1)
                         next = "";
                     else
                         next = "\n" + next;
@@ -273,7 +296,7 @@ public class TraitButtonUIElement : UIElement
                     effect = $"{effect}{next}";
                 }
 
-                var open = Tier == 2 ? reset : learn + "\n" + reset;
+                var open = tier == 2 ? reset : learn + "\n" + reset;
                 if (!Open)
                     open = string.Format(Language.GetTextValue("Mods.MordhauProgression.Tooltips.Required"), Language.GetTextValue($"Mods.MordhauProgression.Traits.{data.role}.{id.subRole}.{data.index - 1}.Name"));
 
@@ -309,19 +332,19 @@ public class TraitButtonUIElement : UIElement
                 sb.Draw(texture, pos, null, color, 0, Vector2.Zero, WindowScale, SpriteEffects.None, 0);
 
 
-                color = Tier == 3 ? Color.Plum : Tier == 2 ? Color.Khaki.MultiplyRGB(Color.Khaki) : Tier == 1 ? Color.AntiqueWhite : Color.WhiteSmoke;
+                color = tier == 3 ? Color.Plum : tier == 2 ? Color.Khaki.MultiplyRGB(Color.Khaki) : tier == 1 ? Color.AntiqueWhite : Color.WhiteSmoke;
                 color *= scale - 0.4f;
 
                 ChatManager.DrawColorCodedString(sb, font, id.name, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
 
-                if (Tier == 1)
+                if (tier == 1)
                 {
                     while (ChatManager.GetStringSize(font, next, new Vector2(1f), 160).Y <= ChatManager.GetStringSize(font, text[..text.LastIndexOf(next.Replace("\n", ""))], new Vector2(1f), 160).Y)
                     {
                         next = "\n" + next;
                     }
 
-                    color = Tier == 2 ? Color.Plum : Tier == 1 ? Color.Khaki.MultiplyRGB(Color.Khaki) : Color.AntiqueWhite;
+                    color = tier == 2 ? Color.Plum : tier == 1 ? Color.Khaki.MultiplyRGB(Color.Khaki) : Color.AntiqueWhite;
 
                     ChatManager.DrawColorCodedString(sb, font, next, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
                     text = text[..text.LastIndexOf(next.Replace("\n", ""))] + text[(text.LastIndexOf(next.Replace("\n", "")) + next.Replace("\n", "").Length)..];
@@ -348,47 +371,57 @@ public class TraitButtonUIState : UIState
 {
     public override void OnInitialize()
     {
-        var screenHalved = new Vector2(Main.instance.GraphicsDevice.Viewport.Width / 2, Main.instance.GraphicsDevice.Viewport.Height / 2 - 40 - 100);
-
-        for (int x = 0; x < 8; x++)
+        if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var player))
         {
-            for (int y = 0; y < 4; y++)
+            player.SkillTree.Clear();
+            for (int i = 0; i < 3; i++)
+                player.SkillTree.Add(i, []);
+
+
+            var screenHalved = new Vector2(Main.instance.GraphicsDevice.Viewport.Width / 2, Main.instance.GraphicsDevice.Viewport.Height / 2 - 40 - 100);
+
+            for (int x = 0; x < 8; x++)
             {
-                TraitButtonUIElement button = new();
-                button.SetPadding(0);
-
-                var pos = new Vector2(x * 140 - 10 * (x % 2) - 33 - 485, y * 100);
-                pos += screenHalved;
-
-                button.Left.Set(pos.X, 0f);
-                button.Top.Set(pos.Y, 0f);
-
-                button.Width.Set(66, 0);
-                button.Height.Set(66, 0);
-                button.MinWidth.Set(66, 0);
-                button.MaxWidth.Set(66, 0);
-                button.MaxHeight.Set(66, 0);
-                button.MinHeight.Set(66, 0);
-
-                button.type = y + x * 4;
-                button.Tier = 0;
-
-                Append(button);
-
-
-                var row = x % 2;
-                var index = y;
-                var role = x switch
+                for (int y = 0; y < 4; y++)
                 {
-                    < 2 => "Melee",
-                    < 4 => "Ranger",
-                    < 6 => "Mage",
-                    _ => "Summoner",
-                };
-                TraitButtonUISystem.TraitRegistry.Add((role, row, index, button));
-                button.SetTraitData(role, row, index);
+                    TraitButtonUIElement button = new();
+                    button.SetPadding(0);
 
-                button.Activate();
+                    var pos = new Vector2(x * 140 - 10 * (x % 2) - 33 - 485, y * 100);
+                    pos += screenHalved;
+
+                    button.Left.Set(pos.X, 0f);
+                    button.Top.Set(pos.Y, 0f);
+
+                    button.Width.Set(66, 0);
+                    button.Height.Set(66, 0);
+                    button.MinWidth.Set(66, 0);
+                    button.MaxWidth.Set(66, 0);
+                    button.MaxHeight.Set(66, 0);
+                    button.MinHeight.Set(66, 0);
+
+                    button.type = y + x * 4;
+
+                    Append(button);
+
+
+                    var row = x % 2;
+                    var index = y;
+                    var role = x switch
+                    {
+                        < 2 => "Melee",
+                        < 4 => "Ranger",
+                        < 6 => "Mage",
+                        _ => "Summoner",
+                    };
+
+                    for (int a = 0; a < 3; a++)
+                        player.SkillTree[a].Add((role, row, index, 0, button));
+
+                    button.SetTraitData(role, row, index);
+
+                    button.Activate();
+                }
             }
         }
     }

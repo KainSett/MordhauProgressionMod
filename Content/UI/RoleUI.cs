@@ -32,10 +32,13 @@ public class RoleUISystem : ModSystem
     public override void Load()
     {
         UIDetoursSystem.NameList.Add(LayerName);
+        ReInitialize();
+    }
 
+    public void ReInitialize()
+    {
         state = new RoleUIState();
         Interface = new UserInterface();
-        state.Activate();
     }
 
 
@@ -99,76 +102,82 @@ public class RoleUIElement : UIElement
 
         var color = Color.Gold with { A = 50 };
 
-        var level = UIPlayer.SubRoleLevel[index.row].level;
-        if (level != 0)
+        if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var player))
         {
-            var cutRect = rect with { Height = (int)(rect.Height * (level / 8f)), Y = (int)(rect.Height - rect.Height * (level / 8f)) };
-
-            if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var player))
+            var level = player.SubRoleLevel[index.row].level;
+            if (level != 0)
             {
-                if (player.SkillTree.Any(e => e.trait.Flash > 0 && e.trait.ActualRow == index.row))
+                var cutRect = rect with { Height = (int)(rect.Height * (level / 8f)), Y = (int)(rect.Height - rect.Height * (level / 8f)) };
+
+                if (player.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex].Any(e => e.trait.Flash > 0 && e.trait.ActualRow == index.row))
                 {
-                    
-                    color *= 0.5f + player.SkillTree.First(e => e.trait.Flash > 0 && e.trait.ActualRow == index.row).trait.Flash;
+
+                    color *= 0.5f + player.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex].First(e => e.trait.Flash > 0 && e.trait.ActualRow == index.row).trait.Flash;
                     color.A = 0;
                 }
+
+
+                spriteBatch.Draw(texture, center + new Vector2(0, rect.Height - rect.Height * (level / 8f)), cutRect, color, 0, origin, scale, SpriteEffects.None, 0);
             }
 
-            spriteBatch.Draw(texture, center + new Vector2(0, rect.Height - rect.Height * (level / 8f)), cutRect, color, 0, origin, scale, SpriteEffects.None, 0);
+
+
+            var font = FontAssets.MouseText.Value;
+
+            var Scale = new Vector2(1.5f);
+            var text = Language.GetTextValue($"Mods.MordhauProgression.Traits.{index.role}.{index.name}.Name");
+            var textSize = ChatManager.GetStringSize(font, text, Scale);
+
+            color = Color.Khaki.MultiplyRGB(Color.Khaki * 1.5f) * (level / 8f);
+            color *= RoleUISystem.HoveredRow == index.row ? 0.66f : 0.44f;
+
+            center += new Vector2(-textSize.X / 2, Height.Pixels / 2);
+
+            ChatManager.DrawColorCodedString(spriteBatch, font, text, center - new Vector2(0, 0), color with { A = 0 }, 0, Vector2.Zero, Scale, 160);
+
+            color = Color.White;
+            color *= RoleUISystem.HoveredRow == index.row ? 0.5f : 0.25f;
+            color *= 1 - (level / 8f);
+
+            ChatManager.DrawColorCodedString(spriteBatch, font, text, center - new Vector2(0, 0), color with { A = 50 }, 0, Vector2.Zero, Scale, 160);
+
+
+            if (index.row % 2 == 0)
+                return;
+
+            center = new Vector2(Left.Pixels + Width.Pixels / 2, Top.Pixels + Height.Pixels / 2);
+
+            Scale = new Vector2(2f);
+            text = Language.GetTextValue($"Mods.MordhauProgression.Traits.{index.role}.Name");
+            textSize = ChatManager.GetStringSize(font, text, Scale);
+
+            color = Color.White;
+            color *= 0.33f;
+
+            center += new Vector2(-textSize.X / 2 - 60, -Height.Pixels - 10);
+
+            ChatManager.DrawColorCodedString(spriteBatch, font, text, center, color, 0, Vector2.Zero, Scale, 160);
         }
-
-
-        var font = FontAssets.MouseText.Value;
-
-        var Scale = new Vector2(1.5f);
-        var text = Language.GetTextValue($"Mods.MordhauProgression.Traits.{index.role}.{index.name}.Name");
-        var textSize = ChatManager.GetStringSize(font, text, Scale);
-
-        color = Color.Khaki.MultiplyRGB(Color.Khaki * 1.5f) * (level / 8f);
-        color *= RoleUISystem.HoveredRow == index.row ? 0.66f : 0.44f;
-
-        center += new Vector2(-textSize.X / 2, Height.Pixels / 2);
-
-        ChatManager.DrawColorCodedString(spriteBatch, font, text, center - new Vector2(0, 0), color with { A = 0 }, 0, Vector2.Zero, Scale, 160);
-
-        color = Color.White;
-        color *= RoleUISystem.HoveredRow == index.row ? 0.5f : 0.25f;
-        color *= 1 - (level / 8f);
-
-        ChatManager.DrawColorCodedString(spriteBatch, font, text, center - new Vector2(0, 0), color with { A = 50 }, 0, Vector2.Zero, Scale, 160);
-
-
-        if (index.row % 2 == 0)
-            return;
-
-        center = new Vector2(Left.Pixels + Width.Pixels / 2, Top.Pixels + Height.Pixels / 2);
-
-        Scale = new Vector2(2f);
-        text = Language.GetTextValue($"Mods.MordhauProgression.Traits.{index.role}.Name");
-        textSize = ChatManager.GetStringSize(font, text, Scale);
-
-        color = Color.White;
-        color *= 0.33f;
-
-        center += new Vector2(-textSize.X / 2 - 60, -Height.Pixels - 10);
-
-        ChatManager.DrawColorCodedString(spriteBatch, font, text, center, color, 0, Vector2.Zero, Scale, 160);
     }
 
     public (string role, string name, int row) index = new();
 
     public override void Update(GameTime gameTime)
     {
-        var first = TraitButtonUISystem.TraitRegistry.FirstOrDefault(t => t.index == 0 && t.trait.id.subRole == index.name).trait;
-        if (first == null)
-            return;
+        if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var player))
+        {
+            var first = player.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex].FirstOrDefault(t => t.index == 0 && t.trait.id.subRole == index.name).trait;
+            if (first == null)
+                return;
 
 
-        var center = new Vector2(first.Left.Pixels + first.Width.Pixels / 2 + 0.1f, first.Top.Pixels - first.Height.Pixels / 2 + 0.1f);
+            var center = new Vector2(first.Left.Pixels + first.Width.Pixels / 2 + 0.1f, first.Top.Pixels - first.Height.Pixels / 2 + 0.1f);
 
-        Left.Set(center.X - Width.Pixels / 2, 0f);
-        Top.Set(center.Y - Height.Pixels, 0f);
+            Left.Set(center.X - Width.Pixels / 2, 0f);
+            Top.Set(center.Y - Height.Pixels, 0f);
 
+        }
+        else return;
 
         RoleUISystem.HoveredRow = -1;
     }

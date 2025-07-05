@@ -6,6 +6,8 @@ using Terraria.ModLoader;
 using Terraria.UI;
 using Terraria;
 using System.Linq;
+using Terraria.ID;
+using static MordhauProgression.Content.UI.ArmorUIElement;
 
 namespace MordhauProgression.Content.UI;
 [Autoload(Side = ModSide.Client)]
@@ -23,31 +25,68 @@ public class ArmorCoinUISystem : ModSystem
     public void Hide()
     {
         Interface?.SetState(null);
+        ReInitialize();
     }
 
     public override void Load()
     {
+        On_ItemSlot.Draw_SpriteBatch_ItemArray_int_int_Vector2_Color += RegisterArmoSlotsPositions;
+        On_ItemSlot.OverrideLeftClick += DontPickupIfHoveredOverArmorCoinUI;
+        ReInitialize();
+    }
+
+    public void ReInitialize()
+    {
         state = new ArmorCoinUIState();
         Interface = new UserInterface();
-        state.Activate();
-
-        On_ItemSlot.Draw_SpriteBatch_ItemArray_int_int_Vector2_Color += RegisterArmoSlotsPositions;
     }
 
     public override void Unload()
     {
         On_ItemSlot.Draw_SpriteBatch_ItemArray_int_int_Vector2_Color -= RegisterArmoSlotsPositions;
+        On_ItemSlot.OverrideLeftClick -= DontPickupIfHoveredOverArmorCoinUI;
+    }
+
+    private bool DontPickupIfHoveredOverArmorCoinUI(On_ItemSlot.orig_OverrideLeftClick orig, Item[] inv, int context, int slot)
+    {
+        if (ModContent.GetInstance<ArmorCoinUISystem>()?.state.Children.Any(e => e.ContainsPoint(Main.MouseScreen * Main.UIScale)) != true)//!AreaContainsPoint(p, new Vector2(16 * Main.UIScale), Main.MouseScreen))
+        {
+            return orig(inv, context, slot);
+        }
+        else return true;
+    }
+
+    public static bool AreaContainsPoint(Vector2 pos, Vector2 size, Vector2 point)
+    {
+        return pos.X < point.X && pos.Y < point.Y && point.X < pos.X + size.X && point.Y < pos.Y + size.Y;
     }
 
     private void RegisterArmoSlotsPositions(On_ItemSlot.orig_Draw_SpriteBatch_ItemArray_int_int_Vector2_Color orig, SpriteBatch spriteBatch, Item[] inv, int context, int slot, Vector2 position, Color lightColor)
     {
         if (inv == Main.LocalPlayer.armor && slot < 3)
         {
+            var scale = Main.UIScale;
+            Main.UIScale = 1;
+            var p = ArmorCoinUIElement.GetCoinPosition(position);
+            Main.UIScale = scale;
+            if (AreaContainsPoint(p, new Vector2(16 * Main.UIScale), Main.MouseScreen))
+            {
+                var i = new Item();
+                i.TurnToAir();
+                /*for (int a = 0; a < inv.Length - 1; a ++)
+                {
+                    inv[a] = i;
+                }*/
+                //Main.HoverItem = i;
+                Main.hoverItemName = "";
+            }
+
             if (slot == 0)
                 Position.Clear();
 
 
             Position.Add(position * Main.UIScale);
+
         }
         orig(spriteBatch, inv, context, slot, position, lightColor);
     }
@@ -114,15 +153,21 @@ public class ArmorCoinUIElement : UIElement
     public int type = 0;
     #endregion
 
+    public static Vector2 GetCoinPosition(Vector2 ItemSlotPos, float dimension = 16)
+    {
+        return new Vector2(ItemSlotPos.X + dimension * 2 * Main.UIScale, ItemSlotPos.Y - dimension / 3 * Main.UIScale);
+    }
+
     public override void Update(GameTime gameTime)
     {
         if (ArmorCoinUISystem.Position.Count <= type || ArmorCoinUISystem.Position[type] == Vector2.Zero)
             return;
 
-        Left.Set(ArmorCoinUISystem.Position[type].X + 40 * Main.UIScale - Width.Pixels / 2, 0);
-        Top.Set(ArmorCoinUISystem.Position[type].Y + 2 * Main.UIScale - Height.Pixels / 2, 0);
-        ArmorCoinUISystem.Position[type] = Vector2.Zero;
+        var pos = GetCoinPosition(ArmorCoinUISystem.Position[type]);
 
+        Left.Set(pos.X, 0);
+        Top.Set(pos.Y, 0);
+        ArmorCoinUISystem.Position[type] = Vector2.Zero;
 
         if (ContainsPoint(Main.MouseScreen * Main.UIScale))
         {
@@ -147,12 +192,9 @@ public class ArmorCoinUIElement : UIElement
         else
             frame = (0, 0, false);
 
-        if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var p))
-        {
-            var loadout = p.Armor[Main.LocalPlayer.CurrentLoadoutIndex];
-            if (loadout.Any(e => e.type == type))
-                frame.row = loadout.First(e => e.type == type).Tier;
-        }
+        var tier = GetArmorTier(type);
+        if (tier != -1)
+            frame.row = tier;
     }
 }
 

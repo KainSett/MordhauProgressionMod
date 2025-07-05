@@ -35,8 +35,12 @@ public class WindowUISystem : ModSystem
 
     public override void Load()
     {
+        ReInitialize();
+    }
+
+    public void ReInitialize()
+    {
         state = new WindowUIState();
-        state.Activate();
     }
 
     public static bool IsActive()

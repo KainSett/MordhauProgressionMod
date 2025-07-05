@@ -19,22 +19,9 @@ public class ArmorUISystem : ModSystem
     internal ArmorUIState state;
     private UserInterface Interface;
 
-    public static HashSet<ArmorUIElement> ArmorRegistry = [];
-
     public void Show()
     {
         Interface?.SetState(state);
-
-        if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var p))
-        {
-            p.Armor?.Clear();
-            p.Armor = [[], [], []];
-
-            foreach (var part in ArmorRegistry)
-            {
-                p.Armor?[Main.LocalPlayer.CurrentLoadoutIndex].Add(part);
-            }
-        }
     }
 
     public void Hide()
@@ -45,10 +32,13 @@ public class ArmorUISystem : ModSystem
     public override void Load()
     {
         UIDetoursSystem.NameList.Add(LayerName);
+        ReInitialize();
+    }
 
+    public void ReInitialize()
+    {
         state = new ArmorUIState();
         Interface = new UserInterface();
-        state.Activate();
     }
 
 
@@ -104,12 +94,13 @@ public class ArmorUIItem : GlobalItem
             return;
 
         var prefix = "";
-        if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var p))
+        if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var player))
         {
-            var loadout = p.Armor[Main.LocalPlayer.CurrentLoadoutIndex];
+            var loadout = player.loadouts[Main.LocalPlayer.CurrentLoadoutIndex];
             if (loadout.Any(e => e.type == type))
-                prefix = Language.GetTextValue($"Mods.MordhauProgression.Armor.T{Math.Min(loadout.First(e => e.type == type).Tier, 3)}.Prefix") + " ";
+                prefix = Language.GetTextValue($"Mods.MordhauProgression.Armor.T{Math.Min(loadout.First(e => e.type == type).tier, 3)}.Prefix") + " ";
         }
+        
 
         var tooltip = tooltips.Find(t => t.Name == "ItemName");
         if (tooltip is not null)
@@ -121,10 +112,13 @@ public class ArmorUIElement : UIElement
 {
     public override void Draw(SpriteBatch spriteBatch)
     {
+        var tier = GetArmorTier(type);
+        if (tier == -1)
+            return;
 
         Texture2D texture = Textures.Armor.Value;
 
-        var rect = texture.Frame(3, 4, type, Tier, -3, -3);
+        var rect = texture.Frame(3, 4, type, tier, -3, -3);
         var scale = Scale;
 
         Vector2 origin = rect.Size() * 0.5f;
@@ -151,15 +145,11 @@ public class ArmorUIElement : UIElement
     }
 
     #region Fields
-    public int Tier = 0;
-
     public int type = 0;
 
     public float Scale = 1f;
 
     public float Flash = 0;
-
-    public int index = 0;
     #endregion
 
     #region Events
@@ -178,32 +168,52 @@ public class ArmorUIElement : UIElement
 
     private void OnRightInteract()
     {
-        if (Tier != 0)
+        if (GetArmorTier(type) != 0)
             Flash = -1f;
 
-        Tier = 0;
-    }
-
-    public static void SetArmorTier(int type, int tier)
-    {
-        if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var p))
-        {
-            var loadout = p.Armor[Main.LocalPlayer.CurrentLoadoutIndex];
-            if (loadout.Any(e => e.type == type))
-                loadout.First(e => e.type == type).Tier = tier;
-        }
+        SetArmorTier(type, 0);
+        //Tier = 0;
     }
 
     private void OnLeftInteract()
     {
-        var newTier = (int)Clamp(Tier + 1, 0, 3);
+        var newTier = (int)Clamp(GetArmorTier(type) + 1, 0, 3);
 
-        if (newTier != Tier)
+        if (newTier != GetArmorTier(type))
             Flash = 1f;
 
-        Tier = newTier;
+        SetArmorTier(type, newTier);
+        //Tier = newTier;
     }
     #endregion
+
+    public static void SetArmorTier(int type, int tier)
+    {
+        if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var player))
+        {
+            var loadout = player.loadouts[Main.LocalPlayer.CurrentLoadoutIndex];
+            if (loadout.Any(e => e.type == type))
+            {
+                var l = loadout.First(e => e.type == type);
+                loadout[loadout.IndexOf(l)] = (type, tier);
+            }
+        }
+    }
+
+    public static int GetArmorTier(int type)
+    {
+        var tier = -1;
+
+        if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var player))
+        {
+            var loadout = player.loadouts[Main.LocalPlayer.CurrentLoadoutIndex];
+            if (loadout.Any(e => e.type == type))
+                tier = loadout.First(e => e.type == type).tier;
+        }
+
+
+        return tier;
+    }
 
     public override void Update(GameTime gameTime)
     {
@@ -225,13 +235,17 @@ public class ArmorUIElement : UIElement
 
         if (Scale != 1)
         {
+            var tier = GetArmorTier(type);
+            if (tier == -1)
+                return;
+
             var learn = Language.GetTextValue("Mods.MordhauProgression.Tooltips.Learn");
             var reset = Language.GetTextValue("Mods.MordhauProgression.Tooltips.Reset");
             var cur = "\n" + Language.GetTextValue("Mods.MordhauProgression.Tooltips.Current");
-            var effect = Language.GetTextValue($"Mods.MordhauProgression.Armor.T{Math.Min(Tier, 3)}.Effect");
-            var name = Language.GetTextValue($"Mods.MordhauProgression.Armor.T{Math.Min(Tier, 3)}.Prefix") + " " + Language.GetTextValue($"Mods.MordhauProgression.Armor.{type}");
+            var effect = Language.GetTextValue($"Mods.MordhauProgression.Armor.T{Math.Min(tier, 3)}.Effect");
+            var name = Language.GetTextValue($"Mods.MordhauProgression.Armor.T{Math.Min(tier, 3)}.Prefix") + " " + Language.GetTextValue($"Mods.MordhauProgression.Armor.{type}");
 
-            var open = Tier == 3 ? reset : learn + "\n" + reset;
+            var open = tier == 3 ? reset : learn + "\n" + reset;
             var text = $"{name}{cur}\n{effect}\n\n{open}";
             var scale = 1 + 12f / 66f;
 
@@ -268,7 +282,7 @@ public class ArmorUIElement : UIElement
                 ChatManager.DrawColorCodedString(sb, font, cur, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
 
 
-                color = Tier == 3 ? Color.Plum : Tier == 2 ? Color.Khaki.MultiplyRGB(Color.Khaki) : Tier == 1 ? Color.AntiqueWhite : Color.WhiteSmoke;
+                color = tier == 3 ? Color.Plum : tier == 2 ? Color.Khaki.MultiplyRGB(Color.Khaki) : tier == 1 ? Color.AntiqueWhite : Color.WhiteSmoke;
                 color *= scale - 0.4f;
 
                 ChatManager.DrawColorCodedString(sb, font, name, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
@@ -279,11 +293,11 @@ public class ArmorUIElement : UIElement
 
                 ChatManager.DrawColorCodedString(sb, font, text, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
 
-                if (Tier != 3)
+                if (tier != 3)
                 {
 
-                    name = Language.GetTextValue($"Mods.MordhauProgression.Armor.T{Tier + 1}.Prefix") + " " + Language.GetTextValue($"Mods.MordhauProgression.Armor.{type}");
-                    text = name + "\n" + Language.GetTextValue($"Mods.MordhauProgression.Armor.T{Tier + 1}.Effect");
+                    name = Language.GetTextValue($"Mods.MordhauProgression.Armor.T{tier + 1}.Prefix") + " " + Language.GetTextValue($"Mods.MordhauProgression.Armor.{type}");
+                    text = name + "\n" + Language.GetTextValue($"Mods.MordhauProgression.Armor.T{tier + 1}.Effect");
                     textSize = ChatManager.GetStringSize(font, text, new Vector2(1f), 140);
                     text = text.Replace(name, "");
                     desiredSize = textOffset * 2 + textSize;
@@ -297,7 +311,7 @@ public class ArmorUIElement : UIElement
                     sb.Draw(texture, pos, null, color, 0, Vector2.Zero, WindowScale, SpriteEffects.None, 0);
 
 
-                    color = Tier == 2 ? Color.Plum : Tier == 1 ? Color.Khaki.MultiplyRGB(Color.Khaki) : Tier == 0 ? Color.AntiqueWhite : Color.WhiteSmoke;
+                    color = tier == 2 ? Color.Plum : tier == 1 ? Color.Khaki.MultiplyRGB(Color.Khaki) : tier == 0 ? Color.AntiqueWhite : Color.WhiteSmoke;
                     color *= scale - 0.5f;
 
                     ChatManager.DrawColorCodedString(sb, font, name, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
@@ -316,38 +330,39 @@ public class ArmorUIState : UIState
 {
     public override void OnInitialize()
     {
+        if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var player))
+        {
+            player.loadouts.Clear();
+            for (int i = 0; i < 3; i++)
+                player.loadouts.Add(i, [(0, 0), (1, 0), (2, 0)]);
+        }
+
+
         var pos = new Vector2(Main.instance.GraphicsDevice.Viewport.Width / 1.2f, Main.instance.GraphicsDevice.Viewport.Height / 2 - 40 - 150);
 
-        for (int i = 0; i < 3; i++)
+        for (int y = 0; y < 3; y++)
         {
-            for (int y = 0; y < 3; y++)
-            {
-                ArmorUIElement button = new();
-                button.SetPadding(0);
+            ArmorUIElement button = new();
+            button.SetPadding(0);
 
-                pos += new Vector2(0, 100);
+            pos += new Vector2(0, 100);
 
-                button.Left.Set(pos.X, 0f);
-                button.Top.Set(pos.Y, 0f);
+            button.Left.Set(pos.X, 0f);
+            button.Top.Set(pos.Y, 0f);
 
-                button.Width.Set(66, 0);
-                button.Height.Set(66, 0);
-                button.MinWidth.Set(66, 0);
-                button.MaxWidth.Set(66, 0);
-                button.MaxHeight.Set(66, 0);
-                button.MinHeight.Set(66, 0);
+            button.Width.Set(66, 0);
+            button.Height.Set(66, 0);
+            button.MinWidth.Set(66, 0);
+            button.MaxWidth.Set(66, 0);
+            button.MaxHeight.Set(66, 0);
+            button.MinHeight.Set(66, 0);
 
-                button.type = y;
-                button.Tier = 0;
-                button.index = i;
+            button.type = y;
 
-                Append(button);
+            Append(button);
 
 
-                ArmorUISystem.ArmorRegistry.Add(button);
-
-                button.Activate();
-            }
+            button.Activate();
         }
     }
 }
