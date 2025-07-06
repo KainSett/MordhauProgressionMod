@@ -16,6 +16,15 @@ public class UIPlayer : ModPlayer
 
     public Dictionary<int, List<int>> ArmorTiersData = [];
 
+    public override void Initialize()
+    {
+        if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var player))
+        {
+            player.SkillTree.Clear();
+            player.loadouts.Clear();
+        }
+    }
+
     public void PopulateDataTemplates(List<List<int>> traits = null, List<List<int>> armor = null)
     {
         TraitTiersData.Clear();
@@ -60,6 +69,13 @@ public class UIPlayer : ModPlayer
     {
         if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var player))
         {
+            if (player.SkillTree.Count == 0 || player.SkillTree.First().Value.Count == 0 || player.loadouts.Count == 0 || player.loadouts.First().Value.Count == 0)
+            {
+                //TraitTiersData.Clear();
+                //ArmorTiersData.Clear();
+                return;
+            }
+
             List<List<int>> tree = [];
             for (int i = 0; i < player.SkillTree.First().Value.Count; i++)
             {
