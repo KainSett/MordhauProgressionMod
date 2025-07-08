@@ -9,6 +9,7 @@ using Terraria.UI.Chat;
 using Terraria.UI;
 using Terraria;
 using System.Linq;
+using Terraria.Localization;
 
 namespace MordhauProgression.Content.UI;
 [Autoload(Side = ModSide.Client)]
@@ -30,6 +31,7 @@ public class PointUISystem : ModSystem
 
     public override void Load()
     {
+        UIDetoursSystem.NameList.Add(LayerName);
         ReInitialize();
     }
 
@@ -66,6 +68,8 @@ public class PointUISystem : ModSystem
         }, InterfaceScaleType.None);
 
         layers.Insert(index + 1, l);
+
+        UIDetoursSystem.UILayers = layers;
     }
 }
 
@@ -75,6 +79,11 @@ public class PointUIElement : UIElement
     {
         Texture2D texture = Textures.Point.Value;
         var rect = texture.Frame(1, 4, 0, frame.index, -1, -1);
+
+        var scale = Main.UIScale;
+        if (Main.InGameUI.CurrentState is BaseFancyUI)
+            scale = 1.5f;
+
 
         Vector2 origin = rect.Size() * 0.5f;
 
@@ -87,7 +96,7 @@ public class PointUIElement : UIElement
         if (frame.second)
             effect = SpriteEffects.FlipHorizontally;
 
-        spriteBatch.Draw(texture, center, rect, Color.White, 0, origin, 2 * Main.UIScale, effect, 0);
+        spriteBatch.Draw(texture, center, rect, Color.White, 0, origin, 2 * scale, effect, 0);
     }
 
     #region Fields
@@ -96,11 +105,86 @@ public class PointUIElement : UIElement
     private int timer = 0;
     #endregion
 
+    public override void LeftClick(UIMouseEvent evt)
+    {
+        base.LeftClick(evt);
+        if (evt.Target == this)
+            OnLeftInteract();
+    }
+
+    private void OnLeftInteract()
+    {
+        if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var player))
+        {
+            if (player.WindowOpen)
+                player.CloseWindow();
+
+            else player.OpenWindow();
+        }
+    }
+
+    public override bool ContainsPoint(Vector2 point)
+    {
+        var scale = Main.UIScale;
+        if (Main.InGameUI.CurrentState is BaseFancyUI)
+            scale = 1;
+
+        return base.ContainsPoint(point * scale);
+    }
+
     public override void Update(GameTime gameTime)
     {
-        if (ContainsPoint(Main.MouseScreen * Main.UIScale))
+        var scale = Main.UIScale;
+        if (Main.InGameUI.CurrentState is BaseFancyUI)
+            scale = 1;
+
+        if (ContainsPoint(Main.MouseScreen))
         {
             Main.LocalPlayer.mouseInterface = true;
+
+            UIPlayer.CurrentTooltipUI = () =>
+            {
+                var texture = Textures.Window.Value;
+                var font = FontAssets.MouseText.Value;
+
+
+                var sb = Main.spriteBatch;
+
+                var open = "Open";
+                var points = 0;
+                var total = 0;
+                if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var player))
+                {
+                    if (player.WindowOpen)
+                        open = "Close";
+
+                    points = player.Points[Main.LocalPlayer.CurrentLoadoutIndex];
+                    total = player.TotalPoints;
+                }
+
+                var text = string.Format(Language.GetTextValue($"Mods.MordhauProgression.Tooltips.Point.Cur"), $"{points}") + "\n" + string.Format(Language.GetTextValue($"Mods.MordhauProgression.Tooltips.Point.Total"), $"{points}") + "\n\n"+ Language.GetTextValue($"Mods.MordhauProgression.Tooltips.Point.{open}");
+
+                var textSize = ChatManager.GetStringSize(font, text, new Vector2(1f), 160);
+                var textOffset = new Vector2(15);
+
+                var desiredSize = textOffset * 2 + textSize;
+
+                var color = player.WindowOpen ? Color.DarkSlateGray : Color.LightGray;
+                color *= 0.4f;
+
+                var WindowScale = desiredSize / texture.Size();
+
+                scale = 1f;
+
+                var pos = Main.MouseScreen - new Vector2(0, desiredSize.Y);
+
+                sb.Draw(texture, pos, null, color, 0, Vector2.Zero, WindowScale, SpriteEffects.None, 0);
+
+                color = Color.White;
+                color *= 0.6f;
+
+                ChatManager.DrawColorCodedString(sb, font, text, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
+            };
 
             timer = (timer + 1) % 5;
             if (timer % 5 != 0)
@@ -108,10 +192,10 @@ public class PointUIElement : UIElement
 
             if (frame.index == 3)
                 frame.second = false;
-            
+
             else if (frame.index == 0)
                 frame.second = true;
-            
+
 
             frame.index += frame.second ? 1 : -1;
         }

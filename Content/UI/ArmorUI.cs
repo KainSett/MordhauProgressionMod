@@ -173,7 +173,6 @@ public class ArmorUIElement : UIElement
             Flash = -1f;
 
         SetArmorTier(type, 0);
-        //Tier = 0;
     }
 
     private void OnLeftInteract()
@@ -184,7 +183,6 @@ public class ArmorUIElement : UIElement
             Flash = 1f;
 
         SetArmorTier(type, newTier);
-        //Tier = newTier;
     }
     #endregion
 

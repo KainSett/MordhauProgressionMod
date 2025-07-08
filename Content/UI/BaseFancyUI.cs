@@ -87,6 +87,8 @@ public class UIDetoursSystem : ModSystem
             orig(self);
 
             Main.UIScale = oldScale;
+            if (Main.InGameUI.CurrentState is BaseFancyUI)
+                oldScale = 1.5f;
 
             // Only works if min height and min width are exactly half of the default height and width, accordingly
             var newHeight = Clamp(self.MinHeight.Pixels * 2 * oldScale, self.MinHeight.Pixels, self.MaxHeight.Pixels);

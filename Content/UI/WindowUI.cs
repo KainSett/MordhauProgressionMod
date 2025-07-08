@@ -71,6 +71,8 @@ public class WindowUIState : BaseFancyUI
     {
         base.Update(gameTime);
     }
+
+    public override bool ExitCondition => !Main.LocalPlayer.GetModPlayer<UIPlayer>().WindowOpen;
 }
 
 public class WindowUIElement : UIElement

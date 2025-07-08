@@ -183,7 +183,7 @@ public class TraitButtonUIElement : UIElement
                     var tree = p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex];
                     var trait = tree.FirstOrDefault(e => e.row == data.row && e.index == data.index);
                     var index = tree.IndexOf(trait);
-                    trait.flash = 1;
+                    trait.flash = -1;
 
                     p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex][index] = trait;
                 }
@@ -209,7 +209,7 @@ public class TraitButtonUIElement : UIElement
                     var tree = p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex];
                     var trait = tree.FirstOrDefault(e => e.row == data.row && e.index == data.index);
                     var index = tree.IndexOf(trait);
-                    trait.flash = -1;
+                    trait.flash = 1;
 
                     p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex][index] = trait;
                 }
@@ -528,7 +528,7 @@ public class TraitButtonUIState : UIState
                     var index = y;
                     var role = TraitButtonUIElement.GetRole(row);
 
-                    var tier = player.TraitTiersData.Count == 0 || player.TraitTiersData.First().Value.Count == 0 ? [0, 0, 0] : player.TraitTiersData[TraitButtonUIElement.GetName(role, x, y)];
+                    var tier = player.TraitTiersData.Count == 0 || player.TraitTiersData.First().Value.Count == 0 || player.TraitTiersData[TraitButtonUIElement.GetName(role, x, y)].Count == 0 ? [0, 0, 0] : player.TraitTiersData[TraitButtonUIElement.GetName(role, x, y)];
 
                     for (int a = 0; a < 3; a++)
                         player.SkillTree[a].Add((role, row, index, tier[a], false, 0));

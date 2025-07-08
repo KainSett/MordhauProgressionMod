@@ -5,6 +5,13 @@ Tooltips: {
 	T2Bonus: +{0} bonus
 	Required: "{0} required to learn"
 	Current: (Current)
+
+	Point: {
+		Open: LMB to open skill tree
+		Close: LMB to close skill tree
+		Cur: "{0} unused skill points"
+		Total: "{0} skill points in total"
+	}
 }
 
 Armor: {
@@ -90,8 +97,8 @@ Traits: {
 
 			0: {
 				Name: Toughness
-				T1: +7% damage resistance
-				T2: +14% damage resistance
+				T1: +6% damage resistance
+				T2: +12% damage resistance
 			}
 
 			1: {
@@ -101,9 +108,9 @@ Traits: {
 			}
 
 			2: {
-				Name: Thorns
-				T1: Reflect 50% of contact damage taken
-				T2: Reflect 100% of contact damage taken
+				Name: Miracle
+				T1: +10% chance to heal for half the damage taken from an attack
+				T2: +20% chance to heal for half the damage taken from an attack
 			}
 
 			3: {
@@ -162,14 +169,14 @@ Traits: {
 
 			2: {
 				Name: Bodkin Tip
-				T1: +10% chance for a ranged projectile to pierce 1 more enemy
-				T2: +20% chance for a ranged projectile to pierce 1 more enemy
+				T1: +10% chance for a ranged projectile to be able to pierce 1 more enemy
+				T2: +20% chance for a ranged projectile to be able to pierce 1 more enemy
 			}
 
 			3: {
 				Name: Sniper
-				T1: Bullets deal more damage the longer they travel, up to +20 damage for 4 seconds
-				T2: Bullets deal more damage the longer they travel, up to +40 damage for 4 seconds
+				T1: Bullets deal more damage the longer they travel, up to +6 damage for 2 seconds
+				T2: Bullets deal more damage the longer they travel, up to +12 damage for 2 seconds
 			}
 		}
 	}

@@ -36,8 +36,6 @@ public class TooltipUISystem : ModSystem
     public void Hide()
     {
         Interface?.SetState(null);
-
-        Draw = null;
     }
 
     public override void Load()
@@ -67,7 +65,7 @@ public class TooltipUISystem : ModSystem
 
     public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
     {
-        int index = layers.FindIndex(layer => layer.Name.Equals("Vanilla: Ingame Options"));
+        int index = layers.FindIndex(layer => layer.Name.Equals("Vanilla: Inventory"));
         if (index == -1)
             return;
 
@@ -79,7 +77,7 @@ public class TooltipUISystem : ModSystem
 
         }, InterfaceScaleType.None);
 
-        layers.Insert(index + 5, l);
+        layers.Insert(index + 3, l);
 
         UIDetoursSystem.UILayers = layers;
     }
@@ -87,6 +85,8 @@ public class TooltipUISystem : ModSystem
 
 public class TooltipUIElement : UIElement
 {
+    public override void OnInitialize() => IgnoresMouseInteraction = true;
+
     public override void Draw(SpriteBatch spriteBatch)
     {
         ModContent.GetInstance<TooltipUISystem>()?.Draw?.Invoke();
@@ -94,7 +94,7 @@ public class TooltipUIElement : UIElement
 
     public override void Update(GameTime gameTime)
     {
-        
+        ModContent.GetInstance<TooltipUISystem>().Draw = null;
     }
 }
 

@@ -22,6 +22,8 @@ public class UIPlayer : ModPlayer
         {
             player.SkillTree.Clear();
             player.loadouts.Clear();
+            player.Points.Clear();
+            player.TotalPoints = 0;
         }
     }
 
@@ -63,6 +65,9 @@ public class UIPlayer : ModPlayer
         {
             ArmorTiersData[i] = [..a.GetList<int>($"{i}")];
         }
+
+        Points = [.. tag.GetList<int>("Points")];
+        TotalPoints = tag.GetInt("TotalPoints");
     }
 
     public override void SaveData(TagCompound tag)
@@ -113,6 +118,10 @@ public class UIPlayer : ModPlayer
         }
 
         tag["ArmorTiersData"] = armorTag;
+
+
+        tag["Points"] = Points;
+        tag["TotalPoints"] = TotalPoints;
     }
 
     public override void OnEnterWorld()
@@ -124,6 +133,9 @@ public class UIPlayer : ModPlayer
         ModContent.GetInstance<PointUISystem>()?.state.Deactivate();
         ModContent.GetInstance<RoleUISystem>()?.state.Deactivate();
         ModContent.GetInstance<TooltipUISystem>()?.state.Deactivate();
+
+        if (Points.Count == 0)
+            Points = [0, 0, 0];
 
         ModContent.GetInstance<WindowUISystem>()?.ReInitialize();
         ModContent.GetInstance<ArmorUISystem>()?.ReInitialize();
@@ -142,7 +154,9 @@ public class UIPlayer : ModPlayer
         ModContent.GetInstance<TooltipUISystem>()?.state.Activate();
     }
 
-    public int Points = 0;
+    public List<int> Points = [0, 0, 0];
+
+    public int TotalPoints = 0;
 
     public bool WindowOpen = false;
 
@@ -154,38 +168,48 @@ public class UIPlayer : ModPlayer
 
     public static Action CurrentTooltipUI = new(() => { });
 
+    public void OpenWindow()
+    {
+        WindowOpen = true;
+        ModContent.GetInstance<TraitButtonUISystem>()?.Hide();
+        ModContent.GetInstance<ArmorUISystem>()?.Hide();
+        ModContent.GetInstance<WindowUISystem>()?.OpenUI();
+        ModContent.GetInstance<TraitButtonUISystem>()?.Show();
+        ModContent.GetInstance<ArmorUISystem>()?.Show();
+        ModContent.GetInstance<RoleUISystem>()?.Show();
+    }
+
+    public void CloseWindow()
+    {
+        WindowOpen = false;
+    }
+
     public override void ResetEffects()
     {
-        if (Main.LocalPlayer.velocity.Y < 0)
-        {
-            ModContent.GetInstance<TraitButtonUISystem>()?.Hide();
-            ModContent.GetInstance<ArmorUISystem>()?.Hide();
-            ModContent.GetInstance<WindowUISystem>()?.OpenUI();
-            ModContent.GetInstance<TraitButtonUISystem>()?.Show();
-            ModContent.GetInstance<ArmorUISystem>()?.Show();
-            ModContent.GetInstance<RoleUISystem>()?.Show();
-        }
+        ModContent.GetInstance<PointUISystem>()?.Show();
 
-        if (WindowUISystem.IsActive() != true)
+        if (CurrentTooltipUI != null)
+            ModContent.GetInstance<TooltipUISystem>()?.Show(CurrentTooltipUI);
+        else ModContent.GetInstance<TooltipUISystem>()?.Hide();
+
+        if (!WindowUISystem.IsActive())
+            WindowOpen = false;
+
+        if (WindowOpen)
+        {
+
+
+
+            CurrentTooltipUI = null;
+        }
+        else
         {
             CurrentTooltipUI = null;
             ModContent.GetInstance<TraitButtonUISystem>()?.Hide();
             ModContent.GetInstance<ArmorUISystem>()?.Hide();
             ModContent.GetInstance<RoleUISystem>()?.Hide();
-            ModContent.GetInstance<TooltipUISystem>()?.Hide();
-            ModContent.GetInstance<PointUISystem>()?.Show();
+            //ModContent.GetInstance<TooltipUISystem>()?.Hide();
             ModContent.GetInstance<ArmorCoinUISystem>()?.Show();
-        }
-        else
-        {
-            if (CurrentTooltipUI != null)
-                ModContent.GetInstance<TooltipUISystem>()?.Show(CurrentTooltipUI);
-
-            else ModContent.GetInstance<TooltipUISystem>()?.Hide();
-
-
-            CurrentTooltipUI = null;
-            ModContent.GetInstance<PointUISystem>()?.Hide();
         }
 
         if (SkillTree?.Count == 0)
