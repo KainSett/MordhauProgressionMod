@@ -300,4 +300,34 @@ Traits: {
 			}
 		}
 	}
+
+	Other: {
+		Explorer: {
+			Name: Explorer
+
+			0: {
+				Name: Stroke of Luck
+				T1: +0.2 luck
+				T2: +0.4 luck
+			}
+
+			1: {
+				Name: Herbology
+				T1: +10% chance for an additional herb to drop
+				T2: +20% chance for an additional herb to drop
+			}
+
+			2: {
+				Name: Mining
+				T1: +10% mining speed
+				T2: +20% mining speed
+			}
+
+			3: {
+				Name: Alchemy
+				T1: -10% potion sickness duration
+				T2: -20% potion sickness duration
+			}
+		}
+	}
 }

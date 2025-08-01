@@ -32,7 +32,7 @@ public class UIPlayer : ModPlayer
         TraitTiersData.Clear();
         ArmorTiersData.Clear();
 
-        for (int x = 0; x < 8; x++)
+        for (int x = 0; x < 9; x++)
         {
             for (int y = 0; y < 4; y++)
             {
@@ -208,7 +208,6 @@ public class UIPlayer : ModPlayer
             ModContent.GetInstance<TraitButtonUISystem>()?.Hide();
             ModContent.GetInstance<ArmorUISystem>()?.Hide();
             ModContent.GetInstance<RoleUISystem>()?.Hide();
-            //ModContent.GetInstance<TooltipUISystem>()?.Hide();
             ModContent.GetInstance<ArmorCoinUISystem>()?.Show();
         }
 
@@ -216,7 +215,7 @@ public class UIPlayer : ModPlayer
             return;
 
         SubRoleLevel.Clear();
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < 9; i++)
             SubRoleLevel.Add((i, 0));
 
 

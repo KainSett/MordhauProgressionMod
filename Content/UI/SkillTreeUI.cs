@@ -89,7 +89,7 @@ public class TraitButtonUIElement : UIElement
 
         var texture = Textures.Icons.Value;
 
-        var rect = texture.Frame(32, 3, type, GetTraitTier(data.role, data.row, data.index), -1, -1);
+        var rect = texture.Frame(36, 3, type, GetTraitTier(data.role, data.row, data.index), -1, -1);
         var scale = Scale;
 
         Vector2 origin = rect.Size() * 0.5f;
@@ -156,6 +156,8 @@ public class TraitButtonUIElement : UIElement
     public (string role, int row, int index) data = new();
 
     public (string subRole, string name) id = new();
+
+    public Vector2 position = new();
     #endregion
 
     #region Events
@@ -283,41 +285,7 @@ public class TraitButtonUIElement : UIElement
         var sub = "Warrior";
         var first = data.row % 2 == 0;
 
-        switch (data.role)
-        {
-            case "Melee":
-                if (!first)
-                    sub = "Tank";
-
-                break;
-
-            case "Ranger":
-                if (first)
-                    sub = "Sharpshooter";
-
-                else
-                    sub = "Archer";
-
-                break;
-
-            case "Mage":
-                if (first)
-                    sub = "Sorcerer";
-
-                else
-                    sub = "Wizard";
-
-                break;
-
-            default:
-                if (first)
-                    sub = "Commander";
-
-                else
-                    sub = "Defender";
-
-                break;
-        }
+        sub = GetSubRole(data.role, data.row);
 
 
         id.name = GetName(data.role, data.row, data.index);
@@ -417,6 +385,13 @@ public class TraitButtonUIElement : UIElement
         }
     }
 
+    public override void Recalculate()
+    {
+        base.Recalculate();
+        
+        if ()
+    }
+
     public static string GetRole(int row)
     {
         var role = row switch
@@ -424,16 +399,15 @@ public class TraitButtonUIElement : UIElement
             < 2 => "Melee",
             < 4 => "Ranger",
             < 6 => "Mage",
-            _ => "Summoner",
+            < 8 => "Summoner",
+            _ => "Other"
         };
 
         return role;
     }
 
-    public static string GetName(string role, int row, int index)
+    public static string GetSubRole(string role, int row)
     {
-        string name = "";
-
         var sub = "Warrior";
         var first = row % 2 == 0;
 
@@ -463,7 +437,7 @@ public class TraitButtonUIElement : UIElement
 
                 break;
 
-            default:
+            case "Summoner":
                 if (first)
                     sub = "Commander";
 
@@ -471,9 +445,20 @@ public class TraitButtonUIElement : UIElement
                     sub = "Defender";
 
                 break;
+
+            default:
+                sub = "Explorer";
+                break;
         }
 
-        name = Language.GetTextValue($"Mods.MordhauProgression.Traits.{role}.{sub}.{index}.Name");
+        return sub;
+    }
+
+    public static string GetName(string role, int row, int index)
+    {
+        var sub = GetSubRole(role, row);
+
+        var name = Language.GetTextValue($"Mods.MordhauProgression.Traits.{role}.{sub}.{index}.Name");
 
         return name;
     }
@@ -497,9 +482,9 @@ public class TraitButtonUIState : UIState
                 player.SkillTree.Add(i, []);
 
 
-            var screenHalved = new Vector2(Main.instance.GraphicsDevice.Viewport.Width / 2, Main.instance.GraphicsDevice.Viewport.Height / 2 - 40 - 100);
+            var screenHalved = new Vector2(screenSizeDefault.X / 2, screenSizeDefault.Y / 2 - 40 - 100);
 
-            for (int x = 0; x < 8; x++)
+            for (int x = 0; x < 9; x++)
             {
                 for (int y = 0; y < 4; y++)
                 {
@@ -509,15 +494,20 @@ public class TraitButtonUIState : UIState
                     var pos = new Vector2(x * 140 - 10 * (x % 2) - 33 - 485, y * 100);
                     pos += screenHalved;
 
+                    if (x == 8)
+                        pos.X = screenHalved.X - 150 - 33 - 485;
+
+                    pos *= new Vector2(Main.instance.GraphicsDevice.Viewport.Width, Main.instance.GraphicsDevice.Viewport.Height) / screenSizeDefault;
+
                     button.Left.Set(pos.X, 0f);
                     button.Top.Set(pos.Y, 0f);
 
                     button.Width.Set(66, 0);
                     button.Height.Set(66, 0);
-                    button.MinWidth.Set(66, 0);
-                    button.MaxWidth.Set(66, 0);
-                    button.MaxHeight.Set(66, 0);
-                    button.MinHeight.Set(66, 0);
+                    button.MinWidth.Set(33, 0);
+                    button.MaxWidth.Set(132, 0);
+                    button.MaxHeight.Set(132, 0);
+                    button.MinHeight.Set(33, 0);
 
                     button.type = y + x * 4;
 
