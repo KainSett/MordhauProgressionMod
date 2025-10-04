@@ -147,8 +147,8 @@ Traits: {
 
 			3: {
 				Name: Proficiency
-				T1: Arrows move 10% faster
-				T2: Arrows move 20% faster
+				T1: Arrows move 15% faster
+				T2: Arrows move 30% faster
 			}
 		}
 

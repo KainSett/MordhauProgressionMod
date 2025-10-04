@@ -173,7 +173,7 @@ public class ArmorUIElement : UIElement
         if (GetArmorTier(type) != 0)
             Flash = -1f;
 
-        Main.LocalPlayer.GetModPlayer<UIPlayer>().Points[Main.LocalPlayer.CurrentLoadoutIndex] += GetArmorTier(type);
+        Main.LocalPlayer.GetModPlayer<UIPlayer>().Points[Main.LocalPlayer.CurrentLoadoutIndex] += GetArmorTier(type) + 1;
 
         SetArmorTier(type, 0);
     }
@@ -181,6 +181,8 @@ public class ArmorUIElement : UIElement
     private void OnLeftInteract()
     {
         var newTier = (int)Clamp(GetArmorTier(type) + 1, 0, 3);
+        if (Main.LocalPlayer.GetModPlayer<UIPlayer>().Points[Main.LocalPlayer.CurrentLoadoutIndex] <= 0)
+            return;
 
         if (newTier != GetArmorTier(type))
             Flash = 1f;

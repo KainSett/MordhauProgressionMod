@@ -1,7 +1,12 @@
 using MordhauProgression.Content.UI;
+using ReLogic.Utilities;
 using System;
+using System.IO;
 using Terraria;
+using Terraria.DataStructures;
+using Terraria.ID;
 using Terraria.ModLoader;
+using Terraria.ModLoader.IO;
 
 namespace MordhauProgression.Content;
 
@@ -38,7 +43,7 @@ public class TraitPlayer : ModPlayer
             if (!open)
                 continue;
 
-            var name = TraitButtonUIElement.GetName("Melee", row, index);
+            var name = TraitButtonUIElement.GetName(role, row, index);
 
             if (role == "Melee")
                 UpdateMelee(name, row, index, tier);
@@ -131,7 +136,7 @@ public class TraitPlayer : ModPlayer
                 break;
 
             case "Proficiency":
-                ProficiencySpeed = 0.1f * tier;
+                ProficiencySpeed = 0.15f * tier;
                 break;
 
 
@@ -275,5 +280,128 @@ public class TraitPlayer : ModPlayer
                 AlchemyNum = 0.1f * tier;
                 break;
         }
+    }
+
+    #region Effects
+    public override bool FreeDodge(Player.HurtInfo info)
+    {
+        if (Player.dashDelay != 0 && Main.rand.NextFloat() < DodgeChance)
+        {
+            Player.SetImmuneTimeForAllTypes(50);
+            Player.immune = true;
+            return true;
+        }
+        return base.FreeDodge(info);
+    }
+
+    public override void ModifyHitNPC(NPC target, ref NPC.HitModifiers modifiers)
+    {
+        if (Main.rand.NextFloat() < OberhauChance && (modifiers.DamageType == DamageClass.Melee || modifiers.DamageType == DamageClass.MeleeNoSpeed))
+            modifiers.FinalDamage *= 2;
+    }
+
+    public override void ModifyHitNPCWithProj(Projectile proj, NPC target, ref NPC.HitModifiers modifiers)
+    {
+        if (proj.aiStyle == ProjAIStyleID.Arrow && proj.TryGetGlobalProjectile<ArrowProj>(out var p) && p.IsArrow)
+        {
+            modifiers.FinalDamage.Flat += YeomenDamage;
+
+            modifiers.CritDamage += LuckyDamage;
+
+            var ammo = Player.ChooseAmmo(Player.HeldItem);
+            if (Main.rand.NextFloat() < FletcherChance && ammo is not null && !ammo.IsAir)
+                ammo.stack++;
+        }
+    }
+
+    public override bool Shoot(Item item, EntitySource_ItemUse_WithAmmo source, Vector2 position, Vector2 velocity, int type, int damage, float knockback)
+    {
+        if (source.AmmoItemIdUsed == AmmoID.Arrow && Main.rand.NextFloat() < ScattershotChance)
+        {
+            velocity = velocity.RotatedByRandom(PiOver4);
+            ScattershotChance = 0;
+            Player.itemTime = 0;
+        }
+
+        return base.Shoot(item, source, position, velocity, type, damage, knockback);
+    }
+
+    public override void OnHurt(Player.HurtInfo info)
+    {
+        if (Main.rand.NextFloat() < MiracleChance)
+            Player.Heal(info.Damage / 2);
+    }
+
+    public override void Load()
+    {
+        On_Player.Hurt_PlayerDeathReason_int_int_refHurtInfo_bool_bool_int_bool_float_float_float += AdrenalineHurt;
+    }
+
+    private static double AdrenalineHurt(On_Player.orig_Hurt_PlayerDeathReason_int_int_refHurtInfo_bool_bool_int_bool_float_float_float orig, Player self, Terraria.DataStructures.PlayerDeathReason damageSource, int Damage, int hitDirection, out Player.HurtInfo info, bool pvp, bool quiet, int cooldownCounter, bool dodgeable, float armorPenetration, float scalingArmorPenetration, float knockback)
+    {
+        var Orig = orig(self, damageSource, Damage, hitDirection, out info, pvp, quiet, cooldownCounter, dodgeable, armorPenetration, scalingArmorPenetration, knockback);
+        if (self.TryGetModPlayer<TraitPlayer>(out var p) && p.AdrenalineLimit > info.Damage)
+        {
+            info.Knockback = 0;
+            knockback = 0;
+        }
+
+        return Orig;
+    }
+    #endregion
+}
+
+public class ArrowProj : GlobalProjectile
+{
+    public override bool InstancePerEntity => true;
+
+    public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+    {
+        return entity.aiStyle == ProjAIStyleID.Arrow;
+    }
+
+    public bool IsArrow = false;
+
+    public override void OnSpawn(Projectile projectile, IEntitySource source)
+    {
+        if (source is EntitySource_ItemUse_WithAmmo && (source as EntitySource_ItemUse_WithAmmo).AmmoItemIdUsed == AmmoID.Arrow)
+            IsArrow = true;
+
+        if (IsArrow && Main.LocalPlayer.TryGetModPlayer<TraitPlayer>(out var p))
+        {
+            if (Main.rand.NextFloat() < p.BodkinChance && projectile.penetrate != -1 && projectile.maxPenetrate != -1)
+            {
+                projectile.maxPenetrate++;
+                projectile.penetrate++;
+            }
+        }
+    }
+
+    public override void SendExtraAI(Projectile projectile, BitWriter bitWriter, BinaryWriter binaryWriter)
+    {
+        bitWriter.WriteBit(IsArrow);
+        binaryWriter.Write7BitEncodedInt(projectile.penetrate);
+    }
+
+    public override void ReceiveExtraAI(Projectile projectile, BitReader bitReader, BinaryReader binaryReader)
+    {
+        var arrow = bitReader.ReadBit();
+        IsArrow = arrow || IsArrow;
+
+        projectile.penetrate = binaryReader.Read7BitEncodedInt();
+    }
+
+    public override bool PreAI(Projectile projectile)
+    {
+        if (IsArrow)
+            projectile.velocity *= Main.player[projectile.owner].GetModPlayer<TraitPlayer>().ProficiencySpeed + 1f;
+
+        return base.PreAI(projectile);
+    }
+
+    public override void PostAI(Projectile projectile)
+    {
+        if (IsArrow)
+            projectile.velocity /= Main.player[projectile.owner].GetModPlayer<TraitPlayer>().ProficiencySpeed + 1f;
     }
 }
