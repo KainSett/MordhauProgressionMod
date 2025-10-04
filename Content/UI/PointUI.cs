@@ -162,7 +162,7 @@ public class PointUIElement : UIElement
                     total = player.TotalPoints;
                 }
 
-                var text = string.Format(Language.GetTextValue($"Mods.MordhauProgression.Tooltips.Point.Cur"), $"{points}") + "\n" + string.Format(Language.GetTextValue($"Mods.MordhauProgression.Tooltips.Point.Total"), $"{points}") + "\n\n"+ Language.GetTextValue($"Mods.MordhauProgression.Tooltips.Point.{open}");
+                var text = string.Format(Language.GetTextValue($"Mods.MordhauProgression.Tooltips.Point.Cur"), $"{points}") + "\n" + string.Format(Language.GetTextValue($"Mods.MordhauProgression.Tooltips.Point.Total"), $"{total}") + "\n\n"+ Language.GetTextValue($"Mods.MordhauProgression.Tooltips.Point.{open}");
 
                 var textSize = ChatManager.GetStringSize(font, text, new Vector2(1f), 160);
                 var textOffset = new Vector2(15);

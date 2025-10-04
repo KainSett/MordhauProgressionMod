@@ -228,7 +228,7 @@ Traits: {
 			}
 
 			2: {
-				Name: Mana Attunement
+				Name: Mana Well
 				T1: Passively gain 3 mana every second
 				T2: Passively gain 6 mana every second
 			}

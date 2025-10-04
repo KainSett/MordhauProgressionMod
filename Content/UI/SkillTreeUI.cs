@@ -182,6 +182,8 @@ public class TraitButtonUIElement : UIElement
             {
                 if (p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex].Count > 0)
                 {
+                    p.Points[Main.LocalPlayer.CurrentLoadoutIndex] += GetTraitTier(data.role, data.row, data.index);
+
                     var tree = p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex];
                     var trait = tree.FirstOrDefault(e => e.row == data.row && e.index == data.index);
                     var index = tree.IndexOf(trait);
@@ -197,24 +199,22 @@ public class TraitButtonUIElement : UIElement
 
     private void OnLeftInteract()
     {
-        if (!Open)
+        if (!Open || !Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var p) || p.Points[Main.LocalPlayer.CurrentLoadoutIndex] <= 0)
             return;
 
         var newTier = (int)Clamp(GetTraitTier(data.role, data.row, data.index) + 1, 0, 2);
 
         if (newTier != GetTraitTier(data.role, data.row, data.index))
         {
-            if (Main.LocalPlayer.TryGetModPlayer<UIPlayer>(out var p))
+            if (p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex].Count > 0)
             {
-                if (p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex].Count > 0)
-                {
-                    var tree = p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex];
-                    var trait = tree.FirstOrDefault(e => e.row == data.row && e.index == data.index);
-                    var index = tree.IndexOf(trait);
-                    trait.flash = 1;
+                var tree = p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex];
+                var trait = tree.FirstOrDefault(e => e.row == data.row && e.index == data.index);
+                var index = tree.IndexOf(trait);
+                trait.flash = 1;
 
-                    p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex][index] = trait;
-                }
+                p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex][index] = trait;
+                p.Points[Main.LocalPlayer.CurrentLoadoutIndex]--;
             }
         }
 
@@ -355,13 +355,13 @@ public class TraitButtonUIElement : UIElement
 
                 var pos = Main.MouseScreen;
 
-                sb.Draw(texture, pos, null, color, 0, Vector2.Zero, WindowScale, SpriteEffects.None, 0);
+                sb.Draw(texture, pos, null, color with { A = (byte)(color.A * 1.8f) }, 0, Vector2.Zero, WindowScale, SpriteEffects.None, 0);
 
 
                 color = tier == 3 ? Color.Plum : tier == 2 ? Color.Khaki.MultiplyRGB(Color.Khaki) : tier == 1 ? Color.AntiqueWhite : Color.WhiteSmoke;
                 color *= scale - 0.4f;
 
-                ChatManager.DrawColorCodedString(sb, font, id.name, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
+                ChatManager.DrawColorCodedString(sb, font, id.name, pos + textOffset, color with { A = (byte)(color.A * 1.8f) }, 0, Vector2.Zero, new Vector2(1f), 160);
 
                 if (tier == 1)
                 {
@@ -372,7 +372,7 @@ public class TraitButtonUIElement : UIElement
 
                     color = tier == 2 ? Color.Plum : tier == 1 ? Color.Khaki.MultiplyRGB(Color.Khaki) : Color.AntiqueWhite;
 
-                    ChatManager.DrawColorCodedString(sb, font, next, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
+                    ChatManager.DrawColorCodedString(sb, font, next, pos + textOffset, color with { A = (byte)(color.A * 1.8f) }, 0, Vector2.Zero, new Vector2(1f), 160);
                     text = text[..text.LastIndexOf(next.Replace("\n", ""))] + text[(text.LastIndexOf(next.Replace("\n", "")) + next.Replace("\n", "").Length)..];
                 }
 
@@ -380,7 +380,7 @@ public class TraitButtonUIElement : UIElement
                 color = Color.WhiteSmoke;
                 color *= scale - 0.4f;
 
-                ChatManager.DrawColorCodedString(sb, font, text, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
+                ChatManager.DrawColorCodedString(sb, font, text, pos + textOffset, color with { A = (byte)(color.A * 1.8f) }, 0, Vector2.Zero, new Vector2(1f), 160);
             };
         }
     }
@@ -389,7 +389,7 @@ public class TraitButtonUIElement : UIElement
     {
         base.Recalculate();
         
-        if ()
+        
     }
 
     public static string GetRole(int row)

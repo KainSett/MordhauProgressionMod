@@ -1,13 +1,19 @@
-using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using MordhauProgression.Common.Assets;
+using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using Terraria;
+using Terraria.GameContent;
+using Terraria.ID;
+using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
-using Terraria;
-using System.Linq;
-using Terraria.ID;
+using Terraria.UI.Chat;
 using static MordhauProgression.Content.UI.ArmorUIElement;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace MordhauProgression.Content.UI;
 [Autoload(Side = ModSide.Client)]
@@ -129,7 +135,7 @@ public class ArmorCoinUIElement : UIElement
             return;
 
         Texture2D texture = Textures.Coins.Value;
-        var rect = texture.Frame(4, 3, frame.row, frame.index, -1, -1);
+        var rect = texture.Frame(4, 3, Main.LocalPlayer.armor[type] is null || Main.LocalPlayer.armor[type].IsAir ? 0 : frame.row, frame.index, -1, -1);
 
         Vector2 origin = rect.Size() * 0.5f;
 
@@ -174,27 +180,83 @@ public class ArmorCoinUIElement : UIElement
             Main.LocalPlayer.mouseInterface = true;
 
             timer = (timer + 1) % 6;
-            if (timer % 6 != 0)
+            if (timer % 6 == 0)
+            {
+                if (frame.index == 2)
+                {
+
+                    frame.second = false;
+                }
+                else if (frame.index == 0)
+                {
+                    frame.second = true;
+                }
+
+                frame.index += frame.second ? 1 : -1;
+            }
+            var tier = Main.LocalPlayer.armor[type] is null || Main.LocalPlayer.armor[type].IsAir ? 0 : GetArmorTier(type);
+            if (tier == -1)
                 return;
 
-            if (frame.index == 2)
-            {
+            var cur = "\n" + Language.GetTextValue("Mods.MordhauProgression.Tooltips.Current");
+            var effect = Language.GetTextValue($"Mods.MordhauProgression.Armor.T{Math.Min(tier, 3)}.Effect");
+            var name = Language.GetTextValue($"Mods.MordhauProgression.Armor.T{Math.Min(tier, 3)}.Prefix") + " " + Language.GetTextValue($"Mods.MordhauProgression.Armor.{type}");
 
-                frame.second = false;
-            }
-            else if (frame.index == 0)
-            {
-                frame.second = true;
-            }
+            var text = $"{name}{cur}\n{effect}";
+            var scale = 1 + 12f / 66f;
 
-            frame.index += frame.second ? 1 : -1;
+            var color = Color.DarkSlateGray;
+            color *= scale - 0.7f;
+
+            var texture = Textures.Window.Value;
+            var font = FontAssets.MouseText.Value;
+
+            var textSize = ChatManager.GetStringSize(font, text, new Vector2(1f), 160);
+            var textOffset = new Vector2(15);
+            text = text.Replace(name, "");
+            text = text.Replace(cur, "\n");
+
+            var desiredSize = textOffset * 2 + textSize;
+
+            var center = new Vector2(Left.Pixels + Width.Pixels / 2, Top.Pixels + Height.Pixels / 2);
+            var sb = Main.spriteBatch;
+
+
+            UIPlayer.CurrentTooltipUI = () =>
+            {
+                var WindowScale = desiredSize / texture.Size();
+
+                scale = 1 + 12f / 66f;
+
+                var pos = Main.MouseScreen - new Vector2(desiredSize.X, 0);
+
+                sb.Draw(texture, pos, null, color with { A = (byte)(color.A * 1.8f) }, 0, Vector2.Zero, WindowScale, SpriteEffects.None, 0);
+
+                color = Color.WhiteSmoke;
+                color *= scale - 0.8f;
+
+                ChatManager.DrawColorCodedString(sb, font, cur, pos + textOffset, color with { A = (byte)(color.A * 1.8f) }, 0, Vector2.Zero, new Vector2(1f), 160);
+
+
+                color = tier == 3 ? Color.Plum : tier == 2 ? Color.Khaki.MultiplyRGB(Color.Khaki) : tier == 1 ? Color.AntiqueWhite : Color.WhiteSmoke;
+                color *= scale - 0.4f;
+
+                ChatManager.DrawColorCodedString(sb, font, name, pos + textOffset, color with { A = (byte)(color.A * 1.8f) }, 0, Vector2.Zero, new Vector2(1f), 160);
+
+
+                color = Color.WhiteSmoke;
+                color *= scale - 0.4f;
+
+                ChatManager.DrawColorCodedString(sb, font, text, pos + textOffset, color with { A = (byte)(color.A * 1.8f) }, 0, Vector2.Zero, new Vector2(1f), 160);
+
+            };
         }
         else
             frame = (0, 0, false);
 
-        var tier = GetArmorTier(type);
-        if (tier != -1)
-            frame.row = tier;
+        var Tier = GetArmorTier(type);
+        if (Tier != -1)
+            frame.row = Tier;
     }
 }
 

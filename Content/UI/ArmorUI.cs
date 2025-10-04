@@ -1,17 +1,18 @@
-using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using MordhauProgression.Common.Assets;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using Terraria;
 using Terraria.GameContent;
 using Terraria.GameInput;
 using Terraria.Localization;
 using Terraria.ModLoader;
-using Terraria.UI.Chat;
 using Terraria.UI;
-using Terraria;
-using System.Linq;
-using System.Data;
+using Terraria.UI.Chat;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MordhauProgression.Content.UI;
 [Autoload(Side = ModSide.Client)]
@@ -172,6 +173,8 @@ public class ArmorUIElement : UIElement
         if (GetArmorTier(type) != 0)
             Flash = -1f;
 
+        Main.LocalPlayer.GetModPlayer<UIPlayer>().Points[Main.LocalPlayer.CurrentLoadoutIndex] += GetArmorTier(type);
+
         SetArmorTier(type, 0);
     }
 
@@ -181,6 +184,8 @@ public class ArmorUIElement : UIElement
 
         if (newTier != GetArmorTier(type))
             Flash = 1f;
+
+        Main.LocalPlayer.GetModPlayer<UIPlayer>().Points[Main.LocalPlayer.CurrentLoadoutIndex]--;
 
         SetArmorTier(type, newTier);
     }
@@ -275,24 +280,24 @@ public class ArmorUIElement : UIElement
 
                 var pos = Main.MouseScreen;
 
-                sb.Draw(texture, pos, null, color, 0, Vector2.Zero, WindowScale, SpriteEffects.None, 0);
+                sb.Draw(texture, pos, null, color with { A = (byte)(color.A * 1.8f) }, 0, Vector2.Zero, WindowScale, SpriteEffects.None, 0);
 
                 color = Color.WhiteSmoke;
                 color *= scale - 0.8f;
 
-                ChatManager.DrawColorCodedString(sb, font, cur, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
+                ChatManager.DrawColorCodedString(sb, font, cur, pos + textOffset, color with { A = (byte)(color.A * 1.8f) }, 0, Vector2.Zero, new Vector2(1f), 160);
 
 
                 color = tier == 3 ? Color.Plum : tier == 2 ? Color.Khaki.MultiplyRGB(Color.Khaki) : tier == 1 ? Color.AntiqueWhite : Color.WhiteSmoke;
                 color *= scale - 0.4f;
 
-                ChatManager.DrawColorCodedString(sb, font, name, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
+                ChatManager.DrawColorCodedString(sb, font, name, pos + textOffset, color with { A = (byte)(color.A * 1.8f) }, 0, Vector2.Zero, new Vector2(1f), 160);
 
 
                 color = Color.WhiteSmoke;
                 color *= scale - 0.4f;
 
-                ChatManager.DrawColorCodedString(sb, font, text, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
+                ChatManager.DrawColorCodedString(sb, font, text, pos + textOffset, color with { A = (byte)(color.A * 1.8f) }, 0, Vector2.Zero, new Vector2(1f), 160);
 
                 if (tier != 3)
                 {
@@ -309,18 +314,18 @@ public class ArmorUIElement : UIElement
                     color = Color.DarkSlateGray;
                     color *= scale - 0.7f;
 
-                    sb.Draw(texture, pos, null, color, 0, Vector2.Zero, WindowScale, SpriteEffects.None, 0);
+                    sb.Draw(texture, pos, null, color with { A = (byte)(color.A * 1.8f) }, 0, Vector2.Zero, WindowScale, SpriteEffects.None, 0);
 
 
                     color = tier == 2 ? Color.Plum : tier == 1 ? Color.Khaki.MultiplyRGB(Color.Khaki) : tier == 0 ? Color.AntiqueWhite : Color.WhiteSmoke;
                     color *= scale - 0.5f;
 
-                    ChatManager.DrawColorCodedString(sb, font, name, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
+                    ChatManager.DrawColorCodedString(sb, font, name, pos + textOffset, color with { A = (byte)(color.A * 1.8f) }, 0, Vector2.Zero, new Vector2(1f), 160);
 
                     color = Color.WhiteSmoke;
                     color *= scale - 0.5f;
 
-                    ChatManager.DrawColorCodedString(sb, font, text, pos + textOffset, color, 0, Vector2.Zero, new Vector2(1f), 160);
+                    ChatManager.DrawColorCodedString(sb, font, text, pos + textOffset, color with { A = (byte)(color.A * 1.8f) }, 0, Vector2.Zero, new Vector2(1f), 160);
                 }
             };
         }

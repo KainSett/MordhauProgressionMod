@@ -154,9 +154,9 @@ public class UIPlayer : ModPlayer
         ModContent.GetInstance<TooltipUISystem>()?.state.Activate();
     }
 
-    public List<int> Points = [0, 0, 0];
+    public List<int> Points = [10, 10, 10];
 
-    public int TotalPoints = 0;
+    public int TotalPoints = 10;
 
     public bool WindowOpen = false;
 

@@ -80,7 +80,7 @@ public class RoleUIElement : UIElement
     {
         Texture2D texture = Textures.Roles.Value;
 
-        var rect = texture.Frame(8, 1, index.row, 0, -3, -3);
+        var rect = texture.Frame(9, 1, index.row, 0, -3, -3);
         var scale = 1f;
 
         Vector2 origin = rect.Size() * 0.5f;
@@ -123,7 +123,7 @@ public class RoleUIElement : UIElement
 
             var font = FontAssets.MouseText.Value;
 
-            var Scale = new Vector2(1.5f);
+            var Scale = new Vector2(1.2f);
             var text = Language.GetTextValue($"Mods.MordhauProgression.Traits.{index.role}.{index.name}.Name");
             var textSize = ChatManager.GetStringSize(font, text, Scale);
 
@@ -153,7 +153,7 @@ public class RoleUIElement : UIElement
             color = Color.White;
             color *= 0.33f;
 
-            center += new Vector2(-textSize.X / 2 - 60, -Height.Pixels - 10);
+            center += new Vector2(-textSize.X / 2 - 50, -Height.Pixels - 10);
 
             ChatManager.DrawColorCodedString(spriteBatch, font, text, center, color, 0, Vector2.Zero, Scale, 160);
         }
@@ -186,7 +186,7 @@ public class RoleUIState : UIState
 {
     public override void OnInitialize()
     {
-        for (int x = 0; x < 8; x++)
+        for (int x = 0; x < 9; x++)
         {
             RoleUIElement element = new();
             element.SetPadding(0);
@@ -208,8 +208,12 @@ public class RoleUIState : UIState
                     role = first ? "Mage Sorcerer" : "Mage Wizard";
                     break;
 
-                default:
+                case < 8:
                     role = first ? "Summoner Commander" : "Summoner Defender";
+                    break;
+
+                default:
+                    role = "Other Explorer";
                     break;
             }
 
