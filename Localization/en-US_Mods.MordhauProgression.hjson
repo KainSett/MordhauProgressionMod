@@ -207,8 +207,8 @@ Traits: {
 
 			3: {
 				Name: Plot Armor
-				T1: +5% chance for a meteor to fall onto an enemy when your magic attack hits it
-				T2: +10% chance for a meteor to fall onto an enemy when your magic attack hits it
+				T1: +20% chance for a meteor to fall onto an enemy when you get hit
+				T2: +40% chance for a meteor to fall onto an enemy when you get hit
 			}
 		}
 
@@ -261,8 +261,8 @@ Traits: {
 
 			2: {
 				Name: Charisma
-				T1: +4 tag damage
-				T2: +8 tag damage
+				T1: +10% minion movement speed
+				T2: +20% minion movement speed
 			}
 
 			3: {
@@ -295,8 +295,8 @@ Traits: {
 
 			3: {
 				Name: Medical Supplies
-				T1: Sentries heal players nearby by 2 hp/s
-				T2: Sentries heal players nearby by 4 hp/s
+				T1: Sentries heal players nearby by 1 hp/s
+				T2: Sentries heal players nearby by 2 hp/s
 			}
 		}
 	}

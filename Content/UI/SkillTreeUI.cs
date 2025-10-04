@@ -302,7 +302,7 @@ public class TraitButtonUIElement : UIElement
 
                 var effect = Language.GetTextValue($"Mods.MordhauProgression.Traits.{data.role}.{id.subRole}.{data.index}.T{Math.Max(tier, 1)}");
 
-                var f = effect.FirstOrDefault(e => char.IsNumber(e), ' ');
+                var f = effect.FirstOrDefault(e => char.IsNumber(e) || e == '.', ' ');
                 var l = char.IsNumber(effect[effect.IndexOf(f) + 1]) ? effect[effect.IndexOf(f) + 1] : effect[effect.IndexOf(f)];
                 var number = f == ' ' ? "1" : effect[effect.IndexOf(f)..(effect.IndexOf(l) + 1)];
                 var bonus = string.Format(Language.GetTextValue("Mods.MordhauProgression.Tooltips.T2Bonus"), number);
