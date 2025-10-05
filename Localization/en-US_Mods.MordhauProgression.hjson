@@ -207,8 +207,8 @@ Traits: {
 
 			3: {
 				Name: Plot Armor
-				T1: +20% chance for a meteor to fall onto an enemy when you get hit
-				T2: +40% chance for a meteor to fall onto an enemy when you get hit
+				T1: +20% chance for meteors to fall when you get hit
+				T2: +40% chance for meteors to fall when you get hit
 			}
 		}
 
