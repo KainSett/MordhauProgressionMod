@@ -1,10 +1,13 @@
+using Microsoft.Xna.Framework;
 using MordhauProgression.Content.UI;
 using ReLogic.Utilities;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using Terraria;
 using Terraria.DataStructures;
+using Terraria.GameContent.Metadata;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
@@ -33,7 +36,7 @@ public class TraitPlayer : ModPlayer
         CharismaSpeed = 0;
         NurturingNum = 0;
         TrapsNum = 0;
-        MedicalNeal = 0;
+        MedicalHeal = 0;
         LuckNum = 0;
         HerbologyChance = 0;
         AlchemyNum = 0;
@@ -219,7 +222,7 @@ public class TraitPlayer : ModPlayer
 
     public int TrapsNum = 0;
 
-    public int MedicalNeal = 0;
+    public int MedicalHeal = 0;
 
     public void UpdateSummoner(string name, int row, int index, int tier)
     {
@@ -255,7 +258,7 @@ public class TraitPlayer : ModPlayer
                 break;
 
             case "Medical Supplies":
-                MedicalNeal = tier;
+                MedicalHeal = tier;
                 break;
         }
     }
@@ -351,24 +354,24 @@ public class TraitPlayer : ModPlayer
     public override void Load()
     {
         On_Player.Hurt_PlayerDeathReason_int_int_refHurtInfo_bool_bool_int_bool_float_float_float += AdrenalineHurt;
-        On_Player.GetHealMana += DeterminationMana;
-        On_Player.ApplyLifeAndOrMana += DeterminationMana2;
-        On_Player.ManaEffect += DeterminationMana3;
+        On_Player.ManaEffect += DeterminationMana;
+        On_Player.AddBuff_DetermineBuffTimeToAdd += AlchemyTime;
     }
 
-    private void DeterminationMana3(On_Player.orig_ManaEffect orig, Player self, int manaAmount)
+    private static int AlchemyTime(On_Player.orig_AddBuff_DetermineBuffTimeToAdd orig, Player self, int type, int time1)
     {
+        if (type == BuffID.PotionSickness)
+            time1 = (int)(time1 * (1 - self.GetModPlayer<TraitPlayer>().AlchemyNum));
+
+        return orig(self, type, time1);
+    }
+
+    private static void DeterminationMana(On_Player.orig_ManaEffect orig, Player self, int manaAmount)
+    {
+        if (self.TryGetModPlayer<TraitPlayer>(out var p) && p.DeterminationHeal > 0)
+            self.Heal(self.GetModPlayer<TraitPlayer>().DeterminationHeal);
+
         orig(self, manaAmount);
-    }
-
-    private void DeterminationMana2(On_Player.orig_ApplyLifeAndOrMana orig, Player self, Item item)
-    {
-        orig(self, item);
-    }
-
-    private int DeterminationMana(On_Player.orig_GetHealMana orig, Player self, Item item, bool quickHeal)
-    {
-        return orig(self, item, quickHeal);
     }
 
     private static double AdrenalineHurt(On_Player.orig_Hurt_PlayerDeathReason_int_int_refHurtInfo_bool_bool_int_bool_float_float_float orig, Player self, Terraria.DataStructures.PlayerDeathReason damageSource, int Damage, int hitDirection, out Player.HurtInfo info, bool pvp, bool quiet, int cooldownCounter, bool dodgeable, float armorPenetration, float scalingArmorPenetration, float knockback)
@@ -382,21 +385,46 @@ public class TraitPlayer : ModPlayer
 
         return Orig;
     }
+
+    public override void ModifyLuck(ref float luck)
+    {
+        luck += LuckNum;
+    }
+
+    public List<int> NurturedMinions = [];
     #endregion
+}
+
+public class NurtureItem : GlobalItem
+{
+    public override bool InstancePerEntity => true;
+
+    public override bool? UseItem(Item item, Player player)
+    {
+        if (item.DamageType == DamageClass.Summon && item.buffType != 0 && player.TryGetModPlayer<TraitPlayer>(out var p))
+        {
+            p.NurturedMinions = [-1, -1];
+            for (int i = 0; i < p.NurturingNum; i++) 
+            {
+                var proj = Projectile.NewProjectileDirect(item.GetSource_FromThis(), player.Center - new Vector2(0, 20), Vector2.Zero, item.shoot, item.damage / 2, item.knockBack / 2);
+                proj.minionSlots = 0;
+                p.NurturedMinions[i] = (proj.identity);
+            } 
+        }
+
+        return base.UseItem(item, player);
+    }
 }
 
 public class TraitProj : GlobalProjectile
 {
     public override bool InstancePerEntity => true;
 
-    public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
-    {
-        return entity.friendly;
-    }
-
     public bool IsArrow = false;
 
     public bool IsBullet = false;
+
+    public bool IsNurtured = false;
 
     public override void OnSpawn(Projectile projectile, IEntitySource source)
     {
@@ -423,8 +451,20 @@ public class TraitProj : GlobalProjectile
                 projectile.Resize((int)(projectile.width * scale), (int)(projectile.height * scale));
                 projectile.scale *= scale;
             }
+
+            else if (projectile.sentry)
+            {
+                for (int i = 0; i < p.TrapsNum; i++)
+                    SpawnTrap(projectile);
+            }
         }
     }
+
+    public void SpawnTrap(Projectile projectile)
+    {
+        traps.Add(Projectile.NewProjectileDirect(projectile.GetSource_FromThis(), projectile.Center + new Vector2(Main.rand.NextFloat() * 300 - 150, -100), Vector2.Zero, ModContent.ProjectileType<BearTrap>(), 15, 2).identity);
+    }
+
 
     public override void SendExtraAI(Projectile projectile, BitWriter bitWriter, BinaryWriter binaryWriter)
     {
@@ -445,34 +485,109 @@ public class TraitProj : GlobalProjectile
 
     public int counter = 120;
 
+    public int timer = 0;
+
     public override bool PreAI(Projectile projectile)
     {
+        var p = Main.player[projectile.owner].GetModPlayer<TraitPlayer>();
         if (IsArrow)
-            projectile.velocity *= Main.player[projectile.owner].GetModPlayer<TraitPlayer>().ProficiencySpeed + 1f;
+            projectile.velocity *= p.ProficiencySpeed + 1f;
+
+        if (projectile.minion)
+            projectile.velocity *= p.CharismaSpeed + 1f;
+
 
         if (IsBullet)
         {
             counter = Math.Max(-1, counter - 1);
             if (counter % 60 == 0)
-                projectile.damage += Main.player[projectile.owner].GetModPlayer<TraitPlayer>().SniperDamage / 2;
+                projectile.damage += p.SniperDamage / 2;
         }
 
         if (projectile.DamageType == DamageClass.Magic)
         {
-            projectile.velocity *= Main.player[projectile.owner].GetModPlayer<TraitPlayer>().ExpertSpeed + 1f;
+            projectile.velocity *= p.ExpertSpeed + 1f;
         }
+
+        if (traps.Count > 0)
+            foreach (var proj in Array.FindAll(Main.projectile, proj => traps.Contains(proj.identity)))
+                proj.timeLeft = 50;
+
+        else if (projectile.sentry)
+            for (int i = 0; i < p.TrapsNum; i++)
+                SpawnTrap(projectile);
+
+        timer = (timer + 1) % 60;
+
+        if (timer == 0 && p.MedicalHeal > 0)
+            foreach (var player in Array.FindAll(Main.player, pl => pl.active && pl.Center.DistanceSQ(projectile.Center) <= 600 * 600))
+                player.Heal(p.MedicalHeal);
+
+        if (p.NurturedMinions.Contains(projectile.identity))
+        {
+            if (!IsNurtured)
+            {
+                var scale = 0.75f;
+                projectile.Resize((int)(projectile.width * scale), (int)(projectile.height * scale));
+                projectile.scale *= scale;
+            }
+            IsNurtured = true;
+            projectile.minionSlots = 0;
+        }
+        else if (IsNurtured)
+            projectile.Kill();
 
         return base.PreAI(projectile);
     }
 
     public override void PostAI(Projectile projectile)
     {
+        var p = Main.player[projectile.owner].GetModPlayer<TraitPlayer>();
         if (IsArrow)
-            projectile.velocity /= Main.player[projectile.owner].GetModPlayer<TraitPlayer>().ProficiencySpeed + 1f;
+            projectile.velocity /= p.ProficiencySpeed + 1f;
+
+        if (projectile.minion)
+            projectile.velocity /= p.CharismaSpeed + 1f;
 
         if (projectile.DamageType == DamageClass.Magic)
         {
-            projectile.velocity /= Main.player[projectile.owner].GetModPlayer<TraitPlayer>().ExpertSpeed + 1f;
+            projectile.velocity /= p.ExpertSpeed + 1f;
         }
+    }
+
+    public List<int> traps = [];
+
+    public override void OnKill(Projectile projectile, int timeLeft)
+    {
+        if (traps.Count > 0)
+            foreach (var p in Array.FindAll(Main.projectile, proj => traps.Contains(proj.identity)))
+            {
+                traps.Remove(p.identity);
+                p.Kill();
+            }
+    }
+}
+
+public class HerbologyTile : GlobalTile
+{
+    public override void KillTile(int i, int j, int type, ref bool fail, ref bool effectOnly, ref bool noItem)
+    {
+        if (type != TileID.BloomingHerbs)
+            return;
+
+        var dist = 900f * 900f;
+        var who = -1;
+        foreach (var pl in Main.ActivePlayers)
+        {
+            if (pl.Center.DistanceSQ(new Point(i, j).ToWorldCoordinates()) > dist)
+                continue;
+
+            dist = pl.Center.DistanceSQ(new Point(i, j).ToWorldCoordinates());
+            who = pl.whoAmI;
+        }
+
+        if (who >= 0 && Main.player[who].TryGetModPlayer<TraitPlayer>(out var p) && Main.rand.NextFloat() < p.HerbologyChance)
+            for (int x = 0; x < 10000; x++)
+                Drop(i, j, type);
     }
 }

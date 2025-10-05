@@ -236,7 +236,10 @@ public class UIPlayer : ModPlayer
             else c.open = true;
 
             if (!c.open)
+            {
+                Points[Player.CurrentLoadoutIndex] += c.tier;
                 c.tier = 0;
+            }
 
             currentTree[i] = (c.role, c.row, c.index, c.tier, c.open, c.flash);
         }

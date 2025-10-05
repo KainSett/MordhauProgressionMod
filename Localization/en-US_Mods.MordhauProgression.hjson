@@ -331,3 +331,5 @@ Traits: {
 		}
 	}
 }
+
+Projectiles.BearTrap.DisplayName: Bear Trap
