@@ -173,8 +173,6 @@ public class ArmorUIElement : UIElement
         if (GetArmorTier(type) != 0)
             Flash = -1f;
 
-        Main.LocalPlayer.GetModPlayer<UIPlayer>().Points[Main.LocalPlayer.CurrentLoadoutIndex] += GetArmorTier(type) + 1;
-
         SetArmorTier(type, 0);
     }
 

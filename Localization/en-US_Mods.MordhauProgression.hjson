@@ -333,3 +333,10 @@ Traits: {
 }
 
 Projectiles.BearTrap.DisplayName: Bear Trap
+
+Items: {
+	PointCoin: {
+		DisplayName: Point Coin
+		Tooltip: ""
+	}
+}

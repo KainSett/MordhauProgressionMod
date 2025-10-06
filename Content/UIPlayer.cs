@@ -237,7 +237,6 @@ public class UIPlayer : ModPlayer
 
             if (!c.open)
             {
-                Points[Player.CurrentLoadoutIndex] += c.tier;
                 c.tier = 0;
             }
 

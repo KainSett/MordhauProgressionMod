@@ -16,6 +16,21 @@ namespace MordhauProgression.Content;
 
 public class TraitPlayer : ModPlayer
 {
+    public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+    {
+        var chance = 0f;
+        if (!target.active && target.boss)
+            chance = 0.5f;
+
+        else if (!target.active && target.rarity > 1)
+            chance = 0.1f;
+
+        if (Main.rand.NextFloat() < chance)
+        {
+            Item.NewItem(target.GetItemSource_Loot(), target.Center, new Item(ModContent.ItemType<PointCoin>()));
+        }
+    }
+
     public override void PostUpdateMiscEffects()
     {
         DodgeChance = 0;
@@ -587,7 +602,18 @@ public class HerbologyTile : GlobalTile
         }
 
         if (who >= 0 && Main.player[who].TryGetModPlayer<TraitPlayer>(out var p) && Main.rand.NextFloat() < p.HerbologyChance)
-            for (int x = 0; x < 10000; x++)
-                Drop(i, j, type);
+        {
+            for (int x = 0; x < 100; x++)
+            {
+                WorldGen.KillTile_GetItemDrops(i, j, Main.tile[i, j], out var item, out var stack, out var item2, out var stack2);
+
+                if (item > 0)
+                {
+                    int num = Item.NewItem(WorldGen.GetItemSource_FromTileBreak(i, j), i * 16, j * 16, 16, 16, item, 1, noBroadcast: false, -1);
+                    Main.item[num].TryCombiningIntoNearbyItems(num);
+                    break;
+                }
+            }
+        } 
     }
 }

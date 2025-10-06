@@ -182,8 +182,6 @@ public class TraitButtonUIElement : UIElement
             {
                 if (p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex].Count > 0)
                 {
-                    p.Points[Main.LocalPlayer.CurrentLoadoutIndex] += GetTraitTier(data.role, data.row, data.index);
-
                     var tree = p.SkillTree[Main.LocalPlayer.CurrentLoadoutIndex];
                     var trait = tree.FirstOrDefault(e => e.row == data.row && e.index == data.index);
                     var index = tree.IndexOf(trait);
