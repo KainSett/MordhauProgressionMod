@@ -85,12 +85,12 @@ public class TraitButtonUIElement : UIElement
         spriteBatch.End();
         spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, Main.Rasterizer);
 
-        var center = new Vector2(Left.Pixels + Width.Pixels / 2, Top.Pixels + Height.Pixels / 2);
+        var center = new Vector2(Left.GetValue(ScreenSize.X) + Width.GetValue(ScreenSize.X) / 2, Top.GetValue(ScreenSize.Y) + Height.GetValue(ScreenSize.Y) / 2);
 
         var texture = Textures.Icons.Value;
 
         var rect = texture.Frame(36, 3, type, GetTraitTier(data.role, data.row, data.index), -1, -1);
-        var scale = Scale;
+        var scale = Scale * Width.GetValue(ScreenSize.X) / 66f;
 
         Vector2 origin = rect.Size() * 0.5f;
 
@@ -480,8 +480,6 @@ public class TraitButtonUIState : UIState
                 player.SkillTree.Add(i, []);
 
 
-            var screenHalved = new Vector2(screenSizeDefault.X / 2, screenSizeDefault.Y / 2 - 40 - 100);
-
             for (int x = 0; x < 9; x++)
             {
                 for (int y = 0; y < 4; y++)
@@ -489,23 +487,20 @@ public class TraitButtonUIState : UIState
                     TraitButtonUIElement button = new();
                     button.SetPadding(0);
 
-                    var pos = new Vector2(x * 140 - 10 * (x % 2) - 33 - 485, y * 100);
-                    pos += screenHalved;
+                    var pos = new Vector2(0.23f + 0.078f * (x / 2) + 0.067f * (x / 2 + 1), 0.37f + 0.093f * y);
 
                     if (x == 8)
-                        pos.X = screenHalved.X - 150 - 33 - 485;
+                        pos.X = 0.15f;
 
-                    pos *= new Vector2(Main.instance.GraphicsDevice.Viewport.Width, Main.instance.GraphicsDevice.Viewport.Height) / screenSizeDefault;
+                    button.Left.Set(0, pos.X);
+                    button.Top.Set(0, pos.Y);
 
-                    button.Left.Set(pos.X, 0f);
-                    button.Top.Set(pos.Y, 0f);
-
-                    button.Width.Set(66, 0);
-                    button.Height.Set(66, 0);
-                    button.MinWidth.Set(33, 0);
-                    button.MaxWidth.Set(132, 0);
-                    button.MaxHeight.Set(132, 0);
-                    button.MinHeight.Set(33, 0);
+                    button.Width.Set(0, 0.034375f);
+                    button.Height.Set(0, 0.034375f);
+                    button.MinWidth.Set(0, 0.034375f / 2);
+                    button.MaxWidth.Set(0, 0.034375f * 2);
+                    button.MaxHeight.Set(0, 0.034375f * 2);
+                    button.MinHeight.Set(0, 0.034375f / 2);
 
                     button.type = y + x * 4;
 

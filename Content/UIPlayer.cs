@@ -138,19 +138,13 @@ public class UIPlayer : ModPlayer
             Points = [0, 0, 0];
 
         ModContent.GetInstance<WindowUISystem>()?.ReInitialize();
-        ModContent.GetInstance<ArmorUISystem>()?.ReInitialize();
         ModContent.GetInstance<ArmorCoinUISystem>()?.ReInitialize();
-        ModContent.GetInstance<TraitButtonUISystem>()?.ReInitialize();
         ModContent.GetInstance<PointUISystem>()?.ReInitialize();
-        ModContent.GetInstance<RoleUISystem>()?.ReInitialize();
         ModContent.GetInstance<TooltipUISystem>()?.ReInitialize();
 
         ModContent.GetInstance<WindowUISystem>()?.state.Activate();
-        ModContent.GetInstance<ArmorUISystem>()?.state.Activate();
         ModContent.GetInstance<ArmorCoinUISystem>()?.state.Activate();
-        ModContent.GetInstance<TraitButtonUISystem>()?.state.Activate();
         ModContent.GetInstance<PointUISystem>()?.state.Activate();
-        ModContent.GetInstance<RoleUISystem>()?.state.Activate();
         ModContent.GetInstance<TooltipUISystem>()?.state.Activate();
     }
 

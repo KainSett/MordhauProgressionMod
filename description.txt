@@ -1,1 +1,13 @@
-Modify this file with a description of your mod.
+This mod adds a skill tree (albeit with only passive effects, because they're obviously superior to active ones) that contains:
+* A whopping 36 skills, which I prefer to call "traits" by the way, 32 of which are class-related, each with 2 tiers
+* An armor tier system that gives you the ability to improve the stats your armor pieces give! 
+
+
+The points which you use to learn these traits have a 50% chance to drop from bosses, and a 10% chance to drop from enemies which are rarer than bound npc's (e.g. mimics and whatnot). 
+You can reset any trait you've learned, but you DON'T get the points you spent on it back. 
+To close the skill tree, you just need to either click on the coin-looking button again, or press ESC.
+
+NOTE: it is currently incompatible with non-fullscreen window size.
+
+This mod is compatible with virtually any other mods!
+And feel free to report any bugs you might encounter.

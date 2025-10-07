@@ -347,24 +347,24 @@ public class ArmorUIState : UIState
         }
 
 
-        var pos = new Vector2(Main.instance.GraphicsDevice.Viewport.Width / 1.2f, Main.instance.GraphicsDevice.Viewport.Height / 2 - 40 - 150);
+        var pos = new Vector2(0, 0.4f);
 
         for (int y = 0; y < 3; y++)
         {
             ArmorUIElement button = new();
             button.SetPadding(0);
 
-            pos += new Vector2(0, 100);
+            pos += new Vector2(0, 0.093f);
 
-            button.Left.Set(pos.X, 0f);
-            button.Top.Set(pos.Y, 0f);
+            button.Left.Set(0, 0.83f);
+            button.Top.Set(0, pos.Y);
 
-            button.Width.Set(66, 0);
-            button.Height.Set(66, 0);
-            button.MinWidth.Set(66, 0);
-            button.MaxWidth.Set(66, 0);
-            button.MaxHeight.Set(66, 0);
-            button.MinHeight.Set(66, 0);
+            button.Width.Set(0, 0.034375f);
+            button.Height.Set(0, 0.034375f);
+            button.MinWidth.Set(0, 0.034375f / 2);
+            button.MaxWidth.Set(0, 0.034375f * 2);
+            button.MaxHeight.Set(0, 0.034375f * 2);
+            button.MinHeight.Set(0, 0.034375f / 2);
 
             button.type = y;
 

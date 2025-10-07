@@ -41,6 +41,9 @@ public class WindowUISystem : ModSystem
     public void ReInitialize()
     {
         state = new WindowUIState();
+        ModContent.GetInstance<ArmorUISystem>()?.ReInitialize();
+        ModContent.GetInstance<TraitButtonUISystem>()?.ReInitialize();
+        ModContent.GetInstance<RoleUISystem>()?.ReInitialize();
     }
 
     public static bool IsActive()
@@ -63,6 +66,9 @@ public class WindowUIState : BaseFancyUI
     public override void OnActivate()
     {
         InitializeUI();
+        ModContent.GetInstance<ArmorUISystem>()?.state.Activate();
+        ModContent.GetInstance<TraitButtonUISystem>()?.state.Activate();
+        ModContent.GetInstance<RoleUISystem>()?.state.Activate();
 
         if (PlayerInput.UsingGamepadUI)
             UILinkPointNavigator.ChangePoint(3002);
@@ -81,8 +87,6 @@ public class WindowUIElement : UIElement
 
     public override void Draw(SpriteBatch spriteBatch)
     {
-        var screenSize = new Vector2(Main.screenWidth, Main.screenHeight);
-
         Texture2D texture = Textures.Window.Value;
 
         Vector2 origin = texture.Size() * 0;
@@ -92,7 +96,7 @@ public class WindowUIElement : UIElement
         spriteBatch.End();
         spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, Main.Rasterizer);
 
-        spriteBatch.Draw(texture, GetInnerDimensions().Position(), null, color with { A = 240 }, 0, origin, screenSize / texture.Size(), SpriteEffects.None, 0);
+        spriteBatch.Draw(texture, GetInnerDimensions().Position(), null, color with { A = 240 }, 0, origin, ScreenSize / texture.Size(), SpriteEffects.None, 0);
 
     }
 }
